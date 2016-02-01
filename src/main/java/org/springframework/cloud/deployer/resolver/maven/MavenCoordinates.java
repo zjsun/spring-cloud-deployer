@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.core;
+package org.springframework.cloud.deployer.resolver.maven;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.cloud.deployer.resolver.ArtifactMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -47,7 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Patrick Peralta
  */
-public class ArtifactCoordinates {
+public class MavenCoordinates implements ArtifactMetadata {
 
 	/**
 	 * The default extension for the artifact.
@@ -94,7 +95,7 @@ public class ArtifactCoordinates {
 	 * @param classifier artifact classifier - can be null
 	 * @param version artifact version
 	 */
-	private ArtifactCoordinates(String groupId, String artifactId, String extension, String classifier, String version) {
+	private MavenCoordinates(String groupId, String artifactId, String extension, String classifier, String version) {
 		Assert.hasText(groupId, "'groupId' cannot be blank");
 		Assert.hasText(artifactId, "'artifactId' cannot be blank");
 		Assert.hasText(extension, "'extension' cannot be blank");
@@ -147,11 +148,11 @@ public class ArtifactCoordinates {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof ArtifactCoordinates)) {
+		if (!(o instanceof MavenCoordinates)) {
 			return false;
 		}
 
-		ArtifactCoordinates that = (ArtifactCoordinates) o;
+		MavenCoordinates that = (MavenCoordinates) o;
 
 		return this.groupId.equals(that.groupId) &&
 				this.artifactId.equals(that.artifactId) &&
@@ -191,7 +192,7 @@ public class ArtifactCoordinates {
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
 	 * @return the instance
 	 */
-	public static ArtifactCoordinates parse(String coordinates) {
+	public static MavenCoordinates parse(String coordinates) {
 		Assert.hasText(coordinates);
 
 		Pattern p = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
@@ -205,7 +206,7 @@ public class ArtifactCoordinates {
 		String classifier = StringUtils.hasLength(m.group(6)) ? m.group(6) : EMPTY_CLASSIFIER;
 		String version = m.group(7);
 
-		return new ArtifactCoordinates(groupId, artifactId, extension, classifier, version);
+		return new MavenCoordinates(groupId, artifactId, extension, classifier, version);
 	}
 
 
@@ -247,8 +248,8 @@ public class ArtifactCoordinates {
 			return this;
 		}
 
-		public ArtifactCoordinates build() {
-			return new ArtifactCoordinates(groupId, artifactId, extension, classifier, version);
+		public MavenCoordinates build() {
+			return new MavenCoordinates(groupId, artifactId, extension, classifier, version);
 		}
 	}
 

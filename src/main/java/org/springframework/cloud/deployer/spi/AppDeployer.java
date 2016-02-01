@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.springframework.cloud.deployer.core.AppDeploymentId;
 import org.springframework.cloud.deployer.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.resolver.ArtifactMetadata;
 import org.springframework.cloud.deployer.status.AppStatus;
 
 /**
@@ -30,7 +31,7 @@ import org.springframework.cloud.deployer.status.AppStatus;
  * @author Patrick Peralta
  * @author Marius Bogoevici
  */
-public interface AppDeployer {
+public interface AppDeployer<A extends ArtifactMetadata> {
 
 	public static final String SERVER_PORT_KEY = "server.port";
 
@@ -51,7 +52,7 @@ public interface AppDeployer {
 	 * @return the deployment id for the app
 	 * @throws IllegalStateException if the app has already been deployed
 	 */
-	AppDeploymentId deploy(AppDeploymentRequest request);
+	AppDeploymentId deploy(AppDeploymentRequest<A> request);
 
 	/**
 	 * Un-deploy the the given {@code AppDeploymenId}. Implementations

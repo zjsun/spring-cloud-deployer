@@ -19,6 +19,7 @@ package org.springframework.cloud.deployer.core;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.cloud.deployer.resolver.ArtifactMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +29,7 @@ import org.springframework.util.Assert;
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class AppDeploymentRequest {
+public class AppDeploymentRequest<A extends ArtifactMetadata> {
 
 	/**
 	 * App definition.
@@ -36,9 +37,9 @@ public class AppDeploymentRequest {
 	private final AppDefinition definition;
 
 	/**
-	 * Coordinates for the app's jar file.
+	 * Metadata for this app's deployable artifact.
 	 */
-	private final ArtifactCoordinates coordinates;
+	private final A artifactMetadata;
 
 	/**
 	 * Map of deployment properties for this app.
@@ -54,15 +55,15 @@ public class AppDeploymentRequest {
 	 * Construct an {@code AppDeploymentRequest}.
 	 *
 	 * @param definition app definition
-	 * @param coordinates maven coordinates for the app's jar file
+	 * @param artifactMetadata metadata for this app's deployable artifact
 	 * @param deploymentProperties map of deployment properties; may be {@code null}
 	 */
-	public AppDeploymentRequest(AppDefinition definition, ArtifactCoordinates coordinates,
+	public AppDeploymentRequest(AppDefinition definition, A artifactMetadata,
 			Map<String, String> deploymentProperties) {
 		Assert.notNull(definition, "definition must not be null");
-		Assert.notNull(coordinates, "coordinates must not be null");
+		Assert.notNull(artifactMetadata, "artifactMetadata must not be null");
 		this.definition = definition;
-		this.coordinates = coordinates;
+		this.artifactMetadata = artifactMetadata;
 		this.deploymentProperties = deploymentProperties == null
 				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(deploymentProperties);
@@ -76,10 +77,10 @@ public class AppDeploymentRequest {
 	 * no deployment properties.
 	 *
 	 * @param definition app definition
-	 * @param coordinates coordinates for the app jar file
+	 * @param artifactMetadata metadata for this app's deployable artifact
 	 */
-	public AppDeploymentRequest(AppDefinition definition, ArtifactCoordinates coordinates) {
-		this(definition, coordinates, null);
+	public AppDeploymentRequest(AppDefinition definition, A artifactMetadata) {
+		this(definition, artifactMetadata, null);
 	}
 
 	/**
@@ -90,10 +91,10 @@ public class AppDeploymentRequest {
 	}
 
 	/**
-	 * @see #coordinates
+	 * @see #artifactMetadata
 	 */
-	public ArtifactCoordinates getCoordinates() {
-		return coordinates;
+	public A getArtifactMetadata() {
+		return artifactMetadata;
 	}
 
 	/**
