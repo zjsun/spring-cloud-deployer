@@ -3,12 +3,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-deployer</artifactId>
+	<artifactId>spring-cloud-deployer-parent</artifactId>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<groupId>org.springframework.cloud</groupId>
+	<packaging>pom</packaging>
 
-	<name>spring-cloud-deployer</name>
+	<name>spring-cloud-deployer-parent</name>
 	<description>Spring Cloud Deployer</description>
 
 	<parent>
@@ -20,50 +20,34 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
-		<aether.version>1.0.2.v20150114</aether.version>
-		<maven.version>3.1.0</maven.version>
+		<java.version>1.7</java.version>
+		<spring-cloud.version>Brixton.BUILD-SNAPSHOT</spring-cloud.version>
 	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-loader</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-impl</artifactId>
-			<version>${aether.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-connector-basic</artifactId>
-			<version>${aether.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-transport-file</artifactId>
-			<version>${aether.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.aether</groupId>
-			<artifactId>aether-transport-http</artifactId>
-			<version>${aether.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-aether-provider</artifactId>
-			<version>${maven.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+	<modules>
+		<module>spring-cloud-deployer-core</module>
+		<module>spring-cloud-deployer-spi</module>
+		<module>spring-cloud-deployer-resolver-maven</module>
+		<module>spring-cloud-deployer-local</module>
+		<module>spring-cloud-deployer-sample-stream</module>
+	</modules>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-parent</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-parent</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
