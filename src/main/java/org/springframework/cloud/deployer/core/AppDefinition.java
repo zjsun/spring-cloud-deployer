@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.deployer.core;
 
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,10 +43,9 @@ public class AppDefinition {
 	private final String group;
 
 	/**
-	 * Properties for the app.
+	 * Properties for this app.
 	 */
 	private final Map<String, String> properties;
-
 
 	/**
 	 * Construct an {@code AppDefinition}.
@@ -85,7 +83,7 @@ public class AppDefinition {
 	}
 
 	/**
-	 * Return properties for app.
+	 * Return properties for this app.
 	 *
 	 * @return read-only map of app properties
 	 */
@@ -100,5 +98,4 @@ public class AppDefinition {
 				.append("group", this.group)
 				.append("properties", this.properties).toString();
 	}
-
 }

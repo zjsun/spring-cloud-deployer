@@ -33,20 +33,11 @@ import org.springframework.cloud.deployer.status.AppStatus;
  */
 public interface AppDeployer<A extends ArtifactMetadata> {
 
-	public static final String SERVER_PORT_KEY = "server.port";
-
-	public static final int DEFAULT_SERVER_PORT = 8080;
-
-	public static final String JMX_DEFAULT_DOMAIN_KEY  = "spring.jmx.default-domain";
-
-	public static final String GROUP_DEPLOYMENT_ID = "spring.cloud.group-deployment-id";
-
 	/**
-	 * Handle the given {@code AppDeploymentRequest}. Implementations
-	 * may perform this operation asynchronously; therefore
-	 * a successful deployment may not be assumed upon return.
-	 * To determine the status of a deployment, invoke
-	 * {@link #status(AppDeploymentId)}.
+	 * Handle the given {@code AppDeploymentRequest}. Implementations may
+	 * perform this operation asynchronously; therefore a successful deployment
+	 * may not be assumed upon return. To determine the status of a deployment,
+	 * invoke {@link #status(AppDeploymentId)}.
 	 *
 	 * @param request request for the app to be deployed
 	 * @return the deployment id for the app
@@ -55,14 +46,12 @@ public interface AppDeployer<A extends ArtifactMetadata> {
 	AppDeploymentId deploy(AppDeploymentRequest<A> request);
 
 	/**
-	 * Un-deploy the the given {@code AppDeploymenId}. Implementations
-	 * may perform this operation asynchronously; therefore
-	 * a successful un-deployment may not be assumed upon return.
-	 * To determine the status of a deployment, invoke
-	 * {@link #status(AppDeploymentId)}.
+	 * Un-deploy the the given {@code AppDeploymenId}. Implementations may
+	 * perform this operation asynchronously; therefore a successful
+	 * un-deployment may not be assumed upon return. To determine the status of
+	 * a deployment, invoke {@link #status(AppDeploymentId)}.
 	 *
 	 * @param id unique id for the app to be un-deployed
-	 *
 	 * @throws IllegalStateException if the app has not been deployed
 	 */
 	void undeploy(AppDeploymentId id);
@@ -71,7 +60,6 @@ public interface AppDeployer<A extends ArtifactMetadata> {
 	 * Return the deployment status of the given {@code AppDeploymentId}.
 	 *
 	 * @param id id for the app this status is for
-	 *
 	 * @return app deployment status
 	 */
 	AppStatus status(AppDeploymentId id);

@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * The {@code ArtifactCoordinates} class contains <a href="https://maven.apache.org/pom.html#Maven_Coordinates">
+ * The {@code MavenCoordinates} class contains <a href="https://maven.apache.org/pom.html#Maven_Coordinates">
  * Maven coordinates</a> for a jar file containing an app/library, or a Bill of Materials pom.
  * <p>
  * To create a new instance, either use {@link Builder} to set the individual fields:
@@ -40,8 +40,8 @@ import org.springframework.util.StringUtils;
  * ...or use {@link #parse(String)} to parse the coordinates as a colon delimited string:
  * <code>&lt;groupId&gt;:&lt;artifactId&gt;[:&lt;extension&gt;[:&lt;classifier&gt;]]:&lt;version&gt;</code>
  * <pre>
- * ArtifactCoordinates.parse("org.springframework.sample:some-app:2.0.0);
- * ArtifactCoordinates.parse("org.springframework.sample:some-app:jar:exec:2.0.0);
+ * MavenCoordinates.parse("org.springframework.sample:some-app:2.0.0);
+ * MavenCoordinates.parse("org.springframework.sample:some-app:jar:exec:2.0.0);
  * </pre>
  * </p>
  * @author David Turanski
@@ -88,7 +88,7 @@ public class MavenCoordinates implements ArtifactMetadata {
 
 
 	/**
-	 * Construct a {@code ArtifactCoordinates} object.
+	 * Construct a {@code MavenCoordinates} object.
 	 * @param groupId group ID for artifact
 	 * @param artifactId artifact ID
 	 * @param extension the file extension
@@ -100,7 +100,6 @@ public class MavenCoordinates implements ArtifactMetadata {
 		Assert.hasText(artifactId, "'artifactId' cannot be blank");
 		Assert.hasText(extension, "'extension' cannot be blank");
 		Assert.hasText(version, "'version' cannot be blank");
-
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.extension = extension;
@@ -151,9 +150,7 @@ public class MavenCoordinates implements ArtifactMetadata {
 		if (!(o instanceof MavenCoordinates)) {
 			return false;
 		}
-
 		MavenCoordinates that = (MavenCoordinates) o;
-
 		return this.groupId.equals(that.groupId) &&
 				this.artifactId.equals(that.artifactId) &&
 				this.extension.equals(that.extension) &&
@@ -194,18 +191,15 @@ public class MavenCoordinates implements ArtifactMetadata {
 	 */
 	public static MavenCoordinates parse(String coordinates) {
 		Assert.hasText(coordinates);
-
 		Pattern p = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
 		Matcher m = p.matcher(coordinates);
 		Assert.isTrue(m.matches(), "Bad artifact coordinates " + coordinates
 				+ ", expected format is <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>");
-
 		String groupId = m.group(1);
 		String artifactId = m.group(2);
 		String extension = StringUtils.hasLength(m.group(4)) ? m.group(4) : DEFAULT_EXTENSION;
 		String classifier = StringUtils.hasLength(m.group(6)) ? m.group(6) : EMPTY_CLASSIFIER;
 		String version = m.group(7);
-
 		return new MavenCoordinates(groupId, artifactId, extension, classifier, version);
 	}
 
@@ -241,7 +235,6 @@ public class MavenCoordinates implements ArtifactMetadata {
 			this.classifier = classifier;
 			return this;
 		}
-
 
 		public Builder setVersion(String version) {
 			this.version = version;
