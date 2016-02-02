@@ -104,6 +104,10 @@ public class AppStatus {
 		return DeploymentState.partial;
 	}
 
+	public String toString() {
+		return this.getState().name();
+	}
+
 	/**
 	 * Return a map of {@code AppInstanceStatus} keyed by a unique identifier
 	 * for each app deployment instance.

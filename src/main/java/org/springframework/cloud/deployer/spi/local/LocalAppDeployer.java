@@ -47,30 +47,30 @@ public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 	@Override
 	public AppDeploymentId deploy(AppDeploymentRequest<MavenCoordinates> request) {
 		Resource resource = this.resolver.resolve(request.getArtifactMetadata());
-		String args[] = generateArgs(request);
 		try {
 			JarFileArchive jarFileArchive = new JarFileArchive(resource.getFile());
 			CustomJarLauncher jarLauncher = new CustomJarLauncher(jarFileArchive);
-			jarLauncher.launch(args);
+			jarLauncher.launch(generateArgs(request));
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return null;
+		return AppDeploymentId.fromAppDefinition(request.getDefinition());
 	}
 
 	@Override
 	public void undeploy(AppDeploymentId id) {
+		throw new UnsupportedOperationException("not yet implemented");
 	}
 
 	@Override
 	public AppStatus status(AppDeploymentId id) {
-		return null;
+		return AppStatus.of(id).build();
 	}
 
 	@Override
 	public Map<AppDeploymentId, AppStatus> status() {
-		return null;
+		throw new UnsupportedOperationException("not yet implemented");
 	}
 
 	private String[] generateArgs(AppDeploymentRequest<MavenCoordinates> request) {
