@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -27,11 +26,11 @@ import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.cloud.deployer.core.AppDeploymentId;
 import org.springframework.cloud.deployer.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.resolver.ArtifactResolver;
-import org.springframework.cloud.deployer.resolver.maven.MavenArtifactResolver;
 import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
 import org.springframework.cloud.deployer.spi.AppDeployer;
 import org.springframework.cloud.deployer.status.AppStatus;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -40,10 +39,9 @@ public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 
 	private final ArtifactResolver<MavenCoordinates> resolver;
 
-	public LocalAppDeployer() {
-		File localRepository = new File(System.getProperty("user.home") + File.separator + ".m2" +
-				File.separator + "repository");
-		this.resolver = new MavenArtifactResolver(localRepository, null);
+	public LocalAppDeployer(ArtifactResolver<MavenCoordinates> resolver) {
+		Assert.notNull(resolver, "ArtifactResolver must not be null");
+		this.resolver = resolver;
 	}
 
 	@Override

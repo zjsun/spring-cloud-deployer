@@ -16,12 +16,14 @@
 
 package demo;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cloud.deployer.core.AppDefinition;
 import org.springframework.cloud.deployer.core.AppDeploymentId;
 import org.springframework.cloud.deployer.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.resolver.maven.MavenArtifactResolver;
 import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
 import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
 import org.springframework.cloud.deployer.status.AppStatus;
@@ -31,15 +33,19 @@ import org.springframework.cloud.deployer.status.AppStatus;
  */
 class StreamAppLauncher {
 
+	private static final File LOCAL_REPO = new File(System.getProperty("user.home")
+			+ File.separator + ".m2" + File.separator + "repository");
+
 	private final String app;
 
 	private final String stream;
 
-	private final LocalAppDeployer deployer = new LocalAppDeployer();
+	private final LocalAppDeployer deployer;
 
 	public StreamAppLauncher(String app, String stream) {
 		this.app = app;
 		this.stream = stream;
+		this.deployer = new LocalAppDeployer(new MavenArtifactResolver(LOCAL_REPO, null));
 	}
 
 	public void launch() throws InterruptedException {
