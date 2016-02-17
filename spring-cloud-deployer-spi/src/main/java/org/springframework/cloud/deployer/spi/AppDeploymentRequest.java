@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.core;
+package org.springframework.cloud.deployer.spi;
 
 import java.util.Collections;
 import java.util.Map;
@@ -22,11 +22,23 @@ import java.util.Map;
 import org.springframework.util.Assert;
 
 /**
+ * {@code AppDeploymentRequest} contains a runtime representation of a task deployment.
+ *
+ * Deployment properties are always related to a SPI specific implementation and will never
+ * going to get passed into a task itself. For example, runtime container may allow to define
+ * various settings for a context where actual task is executed like allowed memory, cpu or
+ * simply various other way to define colocation like node labeling.
+ *
+ * For passing properties or parameters into an app, use {{@link AppDefinition#getParameters()}.
+ *
  * Representation of an app deployment request. This includes
  * app configuration properties as well as deployment properties.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author Janne Valkealahti
+ *
+ * @param <A> the type of artifact metadata
  */
 public class AppDeploymentRequest<A extends ArtifactMetadata> {
 
@@ -46,9 +58,9 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 	private final Map<String, String> deploymentProperties;
 
 	/**
-	 * Number of app instances to launch.
+	 * The deployment property count.
 	 */
-	private final int count;
+	public static String DEPLOYMENT_PROPERTY_COUNT = "org.springframework.cloud.deployer.spi.count";
 
 	/**
 	 * Construct an {@code AppDeploymentRequest}.
@@ -66,9 +78,6 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 		this.deploymentProperties = deploymentProperties == null
 				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(deploymentProperties);
-		this.count = this.deploymentProperties.containsKey("count")
-				? Integer.parseInt(this.deploymentProperties.get("count"))
-				: 1;
 	}
 
 	/**
@@ -94,13 +103,6 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 	 */
 	public A getArtifactMetadata() {
 		return artifactMetadata;
-	}
-
-	/**
-	 * @see #count
-	 */
-	public int getCount() {
-		return count;
 	}
 
 	/**

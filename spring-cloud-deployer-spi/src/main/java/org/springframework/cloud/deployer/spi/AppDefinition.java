@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.core;
+package org.springframework.cloud.deployer.spi;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,11 +24,14 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 
 /**
- * Representation of an app, including configuration properties.
- * This does not include information required at deployment
- * time (such as the number of app instances).
+ * {@code AppDefinition} contains information about an app itself.
+ * Deployer should not modify parameters in this class as those are
+ * meant for an actual app as is. Deployer's only responsibility is to pass
+ * those parameters into a runtime environment in a way that parameters are
+ * available in a running application.
  *
  * @author Mark Fisher
+ * @author Janne Valkealahti
  */
 public class AppDefinition {
 
@@ -56,7 +59,6 @@ public class AppDefinition {
 	 */
 	public AppDefinition(String name, String group, Map<String, String> properties) {
 		Assert.notNull(name, "name must not be null");
-		Assert.notNull(group, "group must not be null");
 		this.name = name;
 		this.group = group;
 		this.properties = properties == null
@@ -67,7 +69,7 @@ public class AppDefinition {
 	/**
 	 * Return the name of this app.
 	 *
-	 * @return app name
+	 * @return the app name
 	 */
 	public String getName() {
 		return name;
@@ -76,16 +78,16 @@ public class AppDefinition {
 	/**
 	 * Return name of group this app instance belongs to.
 	 *
-	 * @return group name
+	 * @return the group name
 	 */
 	public String getGroup() {
 		return group;
 	}
 
 	/**
-	 * Return properties for this app.
+	 * Gets the app definition parameters. These parameters are passed into a running app.
 	 *
-	 * @return read-only map of app properties
+	 * @return the unmodifiable map of app properties
 	 */
 	public Map<String, String> getProperties() {
 		return properties;

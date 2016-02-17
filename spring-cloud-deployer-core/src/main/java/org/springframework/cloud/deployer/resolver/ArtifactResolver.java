@@ -16,14 +16,25 @@
 
 package org.springframework.cloud.deployer.resolver;
 
-import org.springframework.cloud.deployer.core.ArtifactMetadata;
+import org.springframework.cloud.deployer.spi.ArtifactMetadata;
 import org.springframework.core.io.Resource;
 
 /**
+ * A strategy interface resolving a {@link Resource} based
+ * on an {@link ArtifactMetadata}.
+ *
  * @author Mark Fisher
+ * @author Janne Valkealahti
+ *
+ * @param <A> the type of artifact metadata
  */
 public interface ArtifactResolver<A extends ArtifactMetadata> {
 
+	/**
+	 * Resolve a resource based on a given metadata.
+	 *
+	 * @param metadata the artifact metadata
+	 * @return the resource
+	 */
 	Resource resolve(A metadata);
-
 }

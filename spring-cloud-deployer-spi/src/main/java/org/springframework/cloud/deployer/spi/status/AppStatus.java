@@ -1,11 +1,11 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.status;
+package org.springframework.cloud.deployer.spi.status;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,12 +22,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.cloud.deployer.core.AppDeploymentId;
-import org.springframework.cloud.deployer.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.AppDeploymentId;
+import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
 
 /**
- * Status of an {@link AppDeploymentRequest}. This status is
- * composed of an aggregate of all individual app deployments.
+ * Status of an {@link AppDeploymentId} which is initially constructed
+ * from {@link AppDeploymentRequest} and runtime deployment properties by a deployer
+ * during a deployment. This status is composed of an aggregate of
+ * all individual app deployments.
  * <p>
  * Consumers of the SPI obtain app status via
  * {@link org.springframework.cloud.deployer.spi.AppDeployer#status},
@@ -130,11 +132,19 @@ public class AppStatus {
 		return new Builder(key);
 	}
 
-
+	/**
+	 * Utility class constructing an instance of a {@link AppStatus}
+	 * using a builder pattern.
+	 */
 	public static class Builder {
 
 		private final AppStatus status;
 
+		/**
+		 * Instantiates a new builder.
+		 *
+		 * @param key the app deployment id
+		 */
 		private Builder(AppDeploymentId key) {
 			this.status = new AppStatus(key);
 		}
@@ -142,7 +152,7 @@ public class AppStatus {
 		/**
 		 * Add an instance of {@code AppInstanceStatus} to build the status for
 		 * the app. This will be invoked once per individual app instance.
-		 * 
+		 *
 		 * @param instance status of individual app deployment
 		 * @return this {@code Builder}
 		 */
@@ -161,5 +171,4 @@ public class AppStatus {
 			return status;
 		}
 	}
-
 }

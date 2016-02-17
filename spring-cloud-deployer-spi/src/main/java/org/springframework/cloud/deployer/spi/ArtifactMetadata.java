@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.core;
+package org.springframework.cloud.deployer.spi;
 
 /**
+ * A marker interface for classes providing an {@code ArtifactMetadata}.
+ *
  * @author Mark Fisher
+ * @author Janne Valkealahti
  */
 public interface ArtifactMetadata {
-
 }

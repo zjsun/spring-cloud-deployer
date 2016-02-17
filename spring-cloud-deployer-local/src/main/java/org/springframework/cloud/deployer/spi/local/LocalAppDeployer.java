@@ -23,22 +23,31 @@ import java.util.Map;
 import org.springframework.boot.loader.JarLauncher;
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.JarFileArchive;
-import org.springframework.cloud.deployer.core.AppDeploymentId;
-import org.springframework.cloud.deployer.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.resolver.ArtifactResolver;
 import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
 import org.springframework.cloud.deployer.spi.AppDeployer;
-import org.springframework.cloud.deployer.status.AppStatus;
+import org.springframework.cloud.deployer.spi.AppDeploymentId;
+import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.status.AppStatus;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
 /**
+ * Implementation of a {@link AppDeployer} deploying app locally
+ * using a {@link MavenCoordinates}.
+ *
  * @author Mark Fisher
+ * @author Janne Valkealahti
  */
 public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 
 	private final ArtifactResolver<MavenCoordinates> resolver;
 
+	/**
+	 * Instantiates a new local app deployer.
+	 *
+	 * @param resolver the artifact resolver
+	 */
 	public LocalAppDeployer(ArtifactResolver<MavenCoordinates> resolver) {
 		Assert.notNull(resolver, "ArtifactResolver must not be null");
 		this.resolver = resolver;
@@ -55,7 +64,7 @@ public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return AppDeploymentId.fromAppDefinition(request.getDefinition());
+		return new AppDeploymentId(request.getDefinition().getGroup(), request.getDefinition().getName());
 	}
 
 	@Override
@@ -66,11 +75,6 @@ public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 	@Override
 	public AppStatus status(AppDeploymentId id) {
 		return AppStatus.of(id).build();
-	}
-
-	@Override
-	public Map<AppDeploymentId, AppStatus> status() {
-		throw new UnsupportedOperationException("not yet implemented");
 	}
 
 	private String[] generateArgs(AppDeploymentRequest<MavenCoordinates> request) {

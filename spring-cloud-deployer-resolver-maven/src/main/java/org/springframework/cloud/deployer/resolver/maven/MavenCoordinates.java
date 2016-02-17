@@ -19,11 +19,13 @@ package org.springframework.cloud.deployer.resolver.maven;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.cloud.deployer.core.ArtifactMetadata;
+import org.springframework.cloud.deployer.spi.ArtifactMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * {@link ArtifactMetadata} strategy using maven coordinates.
+ * <p>
  * The {@code MavenCoordinates} class contains <a href="https://maven.apache.org/pom.html#Maven_Coordinates">
  * Maven coordinates</a> for a jar file containing an app/library, or a Bill of Materials pom.
  * <p>
@@ -89,6 +91,7 @@ public class MavenCoordinates implements ArtifactMetadata {
 
 	/**
 	 * Construct a {@code MavenCoordinates} object.
+	 *
 	 * @param groupId group ID for artifact
 	 * @param artifactId artifact ID
 	 * @param extension the file extension
@@ -245,5 +248,4 @@ public class MavenCoordinates implements ArtifactMetadata {
 			return new MavenCoordinates(groupId, artifactId, extension, classifier, version);
 		}
 	}
-
 }

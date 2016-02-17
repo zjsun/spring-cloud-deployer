@@ -20,13 +20,13 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.cloud.deployer.core.AppDefinition;
-import org.springframework.cloud.deployer.core.AppDeploymentId;
-import org.springframework.cloud.deployer.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.resolver.maven.MavenArtifactResolver;
 import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
+import org.springframework.cloud.deployer.spi.AppDefinition;
+import org.springframework.cloud.deployer.spi.AppDeploymentId;
+import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
-import org.springframework.cloud.deployer.status.AppStatus;
+import org.springframework.cloud.deployer.spi.status.AppStatus;
 
 /**
  * @author Mark Fisher

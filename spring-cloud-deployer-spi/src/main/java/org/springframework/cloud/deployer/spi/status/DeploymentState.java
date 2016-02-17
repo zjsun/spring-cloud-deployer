@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.status;
+package org.springframework.cloud.deployer.spi.status;
 
 /**
  * Deployment states for apps and groups. These may represent the
