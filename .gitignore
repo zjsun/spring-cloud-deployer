@@ -2,4 +2,5 @@
 .project
 .settings/
 bin
+dump.rdb
 target

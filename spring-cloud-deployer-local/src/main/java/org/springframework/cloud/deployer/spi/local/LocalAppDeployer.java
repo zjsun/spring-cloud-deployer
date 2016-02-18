@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,88 +16,259 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.boot.loader.JarLauncher;
-import org.springframework.boot.loader.archive.Archive;
-import org.springframework.boot.loader.archive.JarFileArchive;
-import org.springframework.cloud.deployer.resolver.ArtifactResolver;
+import javax.annotation.PreDestroy;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.deployer.resolver.maven.MavenArtifactResolver;
 import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
 import org.springframework.cloud.deployer.spi.AppDeployer;
 import org.springframework.cloud.deployer.spi.AppDeploymentId;
 import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.status.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.status.AppStatus;
+import org.springframework.cloud.deployer.spi.status.DeploymentState;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
+import org.springframework.util.SocketUtils;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 /**
- * Implementation of a {@link AppDeployer} deploying app locally
- * using a {@link MavenCoordinates}.
+ * An {@link AppDeployer} implementation that spins off a new JVM process per
+ * app instance.
  *
+ * @author Eric Bottard
+ * @author Marius Bogoevici
  * @author Mark Fisher
- * @author Janne Valkealahti
  */
 public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 
-	private final ArtifactResolver<MavenCoordinates> resolver;
+	private Path logPathRoot;
 
-	/**
-	 * Instantiates a new local app deployer.
-	 *
-	 * @param resolver the artifact resolver
-	 */
-	public LocalAppDeployer(ArtifactResolver<MavenCoordinates> resolver) {
-		Assert.notNull(resolver, "ArtifactResolver must not be null");
+	private static final Logger logger = LoggerFactory.getLogger(LocalAppDeployer.class);
+
+	private static final String SERVER_PORT_KEY = "server.port";
+
+	private static final String JMX_DEFAULT_DOMAIN_KEY = "spring.jmx.default-domain";
+
+	private static final int DEFAULT_SERVER_PORT = 8080;
+
+	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
+
+	@Autowired
+	private LocalAppDeployerProperties properties = new LocalAppDeployerProperties();
+
+	private Map<AppDeploymentId, List<Instance>> running = new ConcurrentHashMap<>();
+
+	private final RestTemplate restTemplate = new RestTemplate();
+
+	private final MavenArtifactResolver resolver;
+
+	public LocalAppDeployer(MavenArtifactResolver resolver) {
 		this.resolver = resolver;
 	}
 
 	@Override
 	public AppDeploymentId deploy(AppDeploymentRequest<MavenCoordinates> request) {
-		Resource resource = this.resolver.resolve(request.getArtifactMetadata());
+		if (this.logPathRoot == null) {
+			try {
+				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-data-flow-");
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+		MavenCoordinates coordinates = request.getArtifactMetadata();
+		Resource resource = this.resolver.resolve(coordinates);
+		String jarPath;
 		try {
-			JarFileArchive jarFileArchive = new JarFileArchive(resource.getFile());
-			CustomJarLauncher jarLauncher = new CustomJarLauncher(jarFileArchive);
-			jarLauncher.launch(generateArgs(request));
+			jarPath = resource.getFile().getAbsolutePath();
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalStateException(e);
 		}
-		return new AppDeploymentId(request.getDefinition().getGroup(), request.getDefinition().getName());
+		AppDeploymentId appDeploymentId = new AppDeploymentId(request.getDefinition().getGroup(), request.getDefinition().getName());
+		List<Instance> processes = new ArrayList<>();
+		running.put(appDeploymentId, processes);
+		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
+		HashMap<String, String> args = new HashMap<>();
+		args.putAll(request.getDefinition().getProperties());
+		args.putAll(request.getDeploymentProperties());
+		String jmxDomainName = String.format("%s.%s", request.getDefinition().getGroup(), request.getDefinition().getName());
+		args.put(JMX_DEFAULT_DOMAIN_KEY, jmxDomainName);
+		args.put("endpoints.shutdown.enabled", "true");
+		args.put("endpoints.jmx.unique-names", "true");
+		try {
+			String groupDeploymentId = request.getDeploymentProperties().get(GROUP_DEPLOYMENT_ID);
+			if (groupDeploymentId == null) {
+				groupDeploymentId = request.getDefinition().getGroup() + "-" + System.currentTimeMillis();
+			}
+			Path appDeploymentGroupDir = Paths.get(logPathRoot.toFile().getAbsolutePath(), groupDeploymentId);
+			if (!Files.exists(appDeploymentGroupDir)) {
+				Files.createDirectory(appDeploymentGroupDir);
+				appDeploymentGroupDir.toFile().deleteOnExit();
+			}
+			Path workDir = Files.createDirectory(Paths.get(appDeploymentGroupDir.toFile().getAbsolutePath(),
+					appDeploymentId.toString()));
+			if (properties.isDeleteFilesOnExit()) {
+				workDir.toFile().deleteOnExit();
+			}
+			String countProperty = request.getDefinition().getProperties().get(AppDeploymentRequest.DEPLOYMENT_PROPERTY_COUNT);
+			int count = (countProperty != null) ? Integer.parseInt(countProperty) : 1;
+			for (int i = 0; i < count; i++) {
+				int port = useDynamicPort ? SocketUtils.findAvailableTcpPort(DEFAULT_SERVER_PORT)
+						: Integer.parseInt(request.getDefinition().getProperties().get(SERVER_PORT_KEY));
+				if (useDynamicPort) {
+					args.put(SERVER_PORT_KEY, String.valueOf(port));
+				}
+				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
+				builder.environment().clear();
+				builder.environment().putAll(args);
+				Instance instance = new Instance(appDeploymentId, i, builder, workDir, port);
+				processes.add(instance);
+				if (properties.isDeleteFilesOnExit()) {
+					instance.stdout.deleteOnExit();
+					instance.stderr.deleteOnExit();
+				}
+				logger.info("deploying app {} instance {}\n   Logs will be in {}", appDeploymentId, i, workDir);
+			}
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Exception trying to deploy " + request, e);
+		}
+		return appDeploymentId;
 	}
 
 	@Override
 	public void undeploy(AppDeploymentId id) {
-		throw new UnsupportedOperationException("not yet implemented");
+		List<Instance> processes = running.get(id);
+		if (processes != null) {
+			for (Instance instance : processes) {
+				if (isAlive(instance.process)) {
+					shutdownAndWait(instance);
+				}
+			}
+			running.remove(id);
+		}
 	}
 
 	@Override
 	public AppStatus status(AppDeploymentId id) {
-		return AppStatus.of(id).build();
-	}
-
-	private String[] generateArgs(AppDeploymentRequest<MavenCoordinates> request) {
-		Map<String, String> appProperties = request.getDefinition().getProperties();
-		ArrayList<String> args = new ArrayList<>(appProperties.size());
-		for (Map.Entry<String, String> entry : appProperties.entrySet()) {
-			args.add(String.format("--%s=%s", entry.getKey(), entry.getValue()));
+		List<Instance> instances = running.get(id);
+		AppStatus.Builder builder = AppStatus.of(id);
+		if (instances != null) {
+			for (Instance instance : instances) {
+				builder.with(instance);
+			}
 		}
-		return args.toArray(new String[args.size()]);
+		return builder.build();
 	}
 
-	/**
-	 * Overrides to enable access.
-	 */
-	private static class CustomJarLauncher extends JarLauncher {
+	private void shutdownAndWait(Instance instance) {
+		try {
+			restTemplate.postForObject(instance.url + "/shutdown", null, String.class);
+			instance.process.waitFor();
+		}
+		catch (InterruptedException | ResourceAccessException e) {
+			instance.process.destroy();
+		}
+	}
 
-		private CustomJarLauncher(Archive archive) {
-			super(archive);
+	@PreDestroy
+	public void shutdown() throws Exception {
+		for (AppDeploymentId appDeploymentId : running.keySet()) {
+			undeploy(appDeploymentId);
+		}
+	}
+
+	private static class Instance implements AppInstanceStatus {
+
+		private final AppDeploymentId appDeploymentId;
+
+		private final int instanceNumber;
+
+		private final Process process;
+
+		private final File workDir;
+
+		private final File stdout;
+
+		private final File stderr;
+
+		private final URL url;
+
+		private Instance(AppDeploymentId appDeploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
+			this.appDeploymentId = appDeploymentId;
+			this.instanceNumber = instanceNumber;
+			builder.directory(workDir.toFile());
+			String workDirPath = workDir.toFile().getAbsolutePath();
+			this.stdout = Files.createFile(Paths.get(workDirPath, "stdout_" + instanceNumber + ".log")).toFile();
+			this.stderr = Files.createFile(Paths.get(workDirPath, "stderr_" + instanceNumber + ".log")).toFile();
+			builder.redirectOutput(this.stdout);
+			builder.redirectError(this.stderr);
+			builder.environment().put("INSTANCE_INDEX", Integer.toString(instanceNumber));
+			this.process = builder.start();
+			this.workDir = workDir.toFile();
+			this.url = new URL("http", Inet4Address.getLocalHost().getHostAddress(), port, "");
 		}
 
 		@Override
-		protected void launch(String[] args) {
-			super.launch(args);
+		public String getId() {
+			return appDeploymentId + "-" + instanceNumber;
+		}
+
+		@Override
+		public DeploymentState getState() {
+			boolean alive = isAlive(process);
+			if (!alive) {
+				return DeploymentState.failed;
+			}
+			try {
+				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+				urlConnection.connect();
+				urlConnection.disconnect();
+				return DeploymentState.deployed;
+			}
+			catch (IOException e) {
+				return DeploymentState.deploying;
+			}
+		}
+
+		@Override
+		public Map<String, String> getAttributes() {
+			HashMap<String, String> result = new HashMap<>();
+			result.put("working.dir", workDir.getAbsolutePath());
+			result.put("stdout", stdout.getAbsolutePath());
+			result.put("stderr", stderr.getAbsolutePath());
+			result.put("url", url.toString());
+			return result;
+		}
+	}
+
+	// Copy-pasting of JDK8+ isAlive method to retain JDK7 compatibility
+	private static boolean isAlive(Process process) {
+		try {
+			process.exitValue();
+			return false;
+		}
+		catch (IllegalThreadStateException e) {
+			return true;
 		}
 	}
 }
