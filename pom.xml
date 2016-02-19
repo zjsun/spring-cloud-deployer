@@ -25,9 +25,8 @@
 	</properties>
 
 	<modules>
-		<module>spring-cloud-deployer-core</module>
 		<module>spring-cloud-deployer-spi</module>
-		<module>spring-cloud-deployer-resolver-maven</module>
+		<module>spring-cloud-deployer-resource-maven</module>
 		<module>spring-cloud-deployer-local</module>
 		<module>spring-cloud-deployer-sample-stream</module>
 	</modules>

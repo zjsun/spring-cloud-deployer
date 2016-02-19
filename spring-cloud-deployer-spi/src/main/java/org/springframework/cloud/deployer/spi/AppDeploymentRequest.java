@@ -19,17 +19,18 @@ package org.springframework.cloud.deployer.spi;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
 /**
  * {@code AppDeploymentRequest} contains a runtime representation of a task deployment.
  *
- * Deployment properties are always related to a SPI specific implementation and will never
- * going to get passed into a task itself. For example, runtime container may allow to define
- * various settings for a context where actual task is executed like allowed memory, cpu or
- * simply various other way to define colocation like node labeling.
+ * Deployment properties are always related to a specific implementation of the SPI and will never
+ * be passed into a task itself. For example, a runtime container may allow the definition of
+ * various settings for a context where the actual task is executed, such as allowed memory, cpu or
+ * simply a way to define colocation like node labeling.
  *
- * For passing properties or parameters into an app, use {{@link AppDefinition#getParameters()}.
+ * For passing properties or parameters into an app, use {{@link AppDefinition#getProperties()}.
  *
  * Representation of an app deployment request. This includes
  * app configuration properties as well as deployment properties.
@@ -37,10 +38,8 @@ import org.springframework.util.Assert;
  * @author Patrick Peralta
  * @author Mark Fisher
  * @author Janne Valkealahti
- *
- * @param <A> the type of artifact metadata
  */
-public class AppDeploymentRequest<A extends ArtifactMetadata> {
+public class AppDeploymentRequest {
 
 	/**
 	 * App definition.
@@ -48,9 +47,9 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 	private final AppDefinition definition;
 
 	/**
-	 * Metadata for this app's deployable artifact.
+	 * Resource for this app's deployable artifact.
 	 */
-	private final A artifactMetadata;
+	private final Resource resource;
 
 	/**
 	 * Map of deployment properties for this app.
@@ -66,15 +65,15 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 	 * Construct an {@code AppDeploymentRequest}.
 	 *
 	 * @param definition app definition
-	 * @param artifactMetadata metadata for this app's deployable artifact
+	 * @param resource resource for this app's deployable artifact
 	 * @param deploymentProperties map of deployment properties; may be {@code null}
 	 */
-	public AppDeploymentRequest(AppDefinition definition, A artifactMetadata,
+	public AppDeploymentRequest(AppDefinition definition, Resource resource,
 			Map<String, String> deploymentProperties) {
 		Assert.notNull(definition, "definition must not be null");
-		Assert.notNull(artifactMetadata, "artifactMetadata must not be null");
+		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
-		this.artifactMetadata = artifactMetadata;
+		this.resource = resource;
 		this.deploymentProperties = deploymentProperties == null
 				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(deploymentProperties);
@@ -85,10 +84,10 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 	 * no deployment properties.
 	 *
 	 * @param definition app definition
-	 * @param artifactMetadata metadata for this app's deployable artifact
+	 * @param resource resource for this app's deployable artifact
 	 */
-	public AppDeploymentRequest(AppDefinition definition, A artifactMetadata) {
-		this(definition, artifactMetadata, null);
+	public AppDeploymentRequest(AppDefinition definition, Resource resource) {
+		this(definition, resource, null);
 	}
 
 	/**
@@ -99,10 +98,10 @@ public class AppDeploymentRequest<A extends ArtifactMetadata> {
 	}
 
 	/**
-	 * @see #artifactMetadata
+	 * @see #resource
 	 */
-	public A getArtifactMetadata() {
-		return artifactMetadata;
+	public Resource getResource() {
+		return resource;
 	}
 
 	/**

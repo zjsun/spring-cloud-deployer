@@ -16,12 +16,10 @@
 
 package sample;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.cloud.deployer.resolver.maven.MavenArtifactResolver;
-import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
+import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.AppDefinition;
 import org.springframework.cloud.deployer.spi.AppDeploymentId;
 import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
@@ -32,12 +30,8 @@ import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
  */
 public class TickTock {
 
-	private static final File LOCAL_REPO = new File(System.getProperty("user.home")
-			+ File.separator + ".m2" + File.separator + "repository");
-
 	public static void main(String[] args) throws InterruptedException {
-		MavenArtifactResolver resolver = new MavenArtifactResolver(LOCAL_REPO, null);
-		LocalAppDeployer deployer = new LocalAppDeployer(resolver);
+		LocalAppDeployer deployer = new LocalAppDeployer();
 		AppDeploymentId logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
 		AppDeploymentId timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
 		for (int i = 0; i < 12; i++) {
@@ -49,8 +43,8 @@ public class TickTock {
 		deployer.undeploy(logId);
 	}
 
-	private static AppDeploymentRequest<MavenCoordinates> createAppDeploymentRequest(String app, String stream) {
-		MavenCoordinates coordinates = new MavenCoordinates.Builder()
+	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
+		MavenResource resource = new MavenResource.Builder()
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.stream.module")
 				.setVersion("1.0.0.BUILD-SNAPSHOT")
@@ -67,8 +61,7 @@ public class TickTock {
 			properties.put("spring.cloud.stream.bindings.input.group", "default");
 		}
 		AppDefinition definition = new AppDefinition(app, stream, properties);
-		AppDeploymentRequest<MavenCoordinates> request =
-				new AppDeploymentRequest<MavenCoordinates>(definition, coordinates);
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 		return request;
 	}
 }

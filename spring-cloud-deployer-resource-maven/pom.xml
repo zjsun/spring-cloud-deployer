@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-deployer-resolver-maven</artifactId>
+	<artifactId>spring-cloud-deployer-resource-maven</artifactId>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<groupId>org.springframework.cloud</groupId>
 	<packaging>jar</packaging>
 
-	<name>spring-cloud-deployer-resolver-maven</name>
-	<description>Spring Cloud Deployer Artifact Resolver for Maven</description>
+	<name>spring-cloud-deployer-resource-maven</name>
+	<description>Spring Cloud Deployer Maven Resource</description>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
@@ -24,9 +24,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-deployer-core</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.aether</groupId>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.resolver.maven;
+package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -41,8 +41,6 @@ import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
-
-import org.springframework.cloud.deployer.resolver.ArtifactResolver;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -50,15 +48,15 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * An implementation of ModuleResolver using <a href="http://www.eclipse.org/aether/>aether</a> to resolve the module
- * artifact (uber jar) in a local Maven repository, downloading the latest update from a remote repository if
- * necessary.
+ * Resolves a {@link MavenResource} using <a href="http://www.eclipse.org/aether/>aether</a> to
+ * locate the artifact (uber jar) in a local Maven repository, downloading the latest update from a
+ * remote repository if necessary.
  *
  * @author David Turanski
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MavenArtifactResolver implements ArtifactResolver<MavenCoordinates> {
+class MavenArtifactResolver {
 
 	private static final Log log = LogFactory.getLog(MavenArtifactResolver.class);
 
@@ -78,7 +76,7 @@ public class MavenArtifactResolver implements ArtifactResolver<MavenCoordinates>
 	 * @param remoteRepositories a Map containing pairs of (repository ID,repository URL). This
 	 * may be null or empty if the local repository is off line.
 	 */
-	public MavenArtifactResolver(File localRepository, Map<String, String> remoteRepositories) {
+	MavenArtifactResolver(File localRepository, Map<String, String> remoteRepositories) {
 		Assert.notNull(localRepository, "Local repository path cannot be null");
 		if (log.isDebugEnabled()) {
 			log.debug("Local repository: " + localRepository);
@@ -114,11 +112,10 @@ public class MavenArtifactResolver implements ArtifactResolver<MavenCoordinates>
 	 * @return a {@link FileSystemResource} representing the resolved artifact in the local repository
 	 * @throws RuntimeException if the artifact does not exist or the resolution fails
 	 */
-	@Override
-	public Resource resolve(MavenCoordinates coordinates) {
-		Assert.notNull(coordinates, "MavenCoordinates cannot be null");
-		validateCoordinates(coordinates);
-		Artifact rootArtifact = toArtifact(coordinates);
+	Resource resolve(MavenResource resource) {
+		Assert.notNull(resource, "MavenResource cannot be null");
+		validateCoordinates(resource);
+		Artifact rootArtifact = toArtifact(resource);
 		RepositorySystemSession session = newRepositorySystemSession(repositorySystem,
 				localRepository.getAbsolutePath());
 		ArtifactResult resolvedArtifact;
@@ -162,18 +159,18 @@ public class MavenArtifactResolver implements ArtifactResolver<MavenCoordinates>
 		return locator.getService(RepositorySystem.class);
 	}
 
-	private void validateCoordinates(MavenCoordinates coordinates) {
-		Assert.hasText(coordinates.getGroupId(), "'groupId' cannot be blank.");
-		Assert.hasText(coordinates.getArtifactId(), "'artifactId' cannot be blank.");
-		Assert.hasText(coordinates.getExtension(), "'extension' cannot be blank.");
-		Assert.hasText(coordinates.getVersion(), "'version' cannot be blank.");
+	private void validateCoordinates(MavenResource resource) {
+		Assert.hasText(resource.getGroupId(), "'groupId' cannot be blank.");
+		Assert.hasText(resource.getArtifactId(), "'artifactId' cannot be blank.");
+		Assert.hasText(resource.getExtension(), "'extension' cannot be blank.");
+		Assert.hasText(resource.getVersion(), "'version' cannot be blank.");
 	}
 
 	private FileSystemResource toResource(ArtifactResult resolvedArtifact) {
 		return new FileSystemResource(resolvedArtifact.getArtifact().getFile());
 	}
 
-	private Artifact toArtifact(MavenCoordinates coordinates) {
+	private Artifact toArtifact(MavenResource coordinates) {
 		return new DefaultArtifact(coordinates.getGroupId(),
 				coordinates.getArtifactId(),
 				coordinates.getClassifier() != null ? coordinates.getClassifier() : "",

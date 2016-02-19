@@ -36,8 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.deployer.resolver.maven.MavenArtifactResolver;
-import org.springframework.cloud.deployer.resolver.maven.MavenCoordinates;
 import org.springframework.cloud.deployer.spi.AppDeployer;
 import org.springframework.cloud.deployer.spi.AppDeploymentId;
 import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
@@ -57,7 +55,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
+public class LocalAppDeployer implements AppDeployer {
 
 	private Path logPathRoot;
 
@@ -78,14 +76,8 @@ public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	private final MavenArtifactResolver resolver;
-
-	public LocalAppDeployer(MavenArtifactResolver resolver) {
-		this.resolver = resolver;
-	}
-
 	@Override
-	public AppDeploymentId deploy(AppDeploymentRequest<MavenCoordinates> request) {
+	public AppDeploymentId deploy(AppDeploymentRequest request) {
 		if (this.logPathRoot == null) {
 			try {
 				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-data-flow-");
@@ -94,8 +86,7 @@ public class LocalAppDeployer implements AppDeployer<MavenCoordinates> {
 				throw new IllegalStateException(e);
 			}
 		}
-		MavenCoordinates coordinates = request.getArtifactMetadata();
-		Resource resource = this.resolver.resolve(coordinates);
+		Resource resource = request.getResource();
 		String jarPath;
 		try {
 			jarPath = resource.getFile().getAbsolutePath();

@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.resolver.maven;
+package org.springframework.cloud.deployer.resource.maven;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.cloud.deployer.spi.ArtifactMetadata;
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link ArtifactMetadata} strategy using maven coordinates.
+ * A {@link Resource} implementation for resolving an artifact via maven coordinates.
  * <p>
- * The {@code MavenCoordinates} class contains <a href="https://maven.apache.org/pom.html#Maven_Coordinates">
+ * The {@code MavenResource} class contains <a href="https://maven.apache.org/pom.html#Maven_Coordinates">
  * Maven coordinates</a> for a jar file containing an app/library, or a Bill of Materials pom.
  * <p>
  * To create a new instance, either use {@link Builder} to set the individual fields:
  * <pre>
- * new ArtifactCoordinates.Builder()
+ * new MavenResource.Builder()
  *     .setGroupId("org.springframework.sample")
  *     .setArtifactId("some-app")
  *     .setExtension("jar") //optional
@@ -42,15 +46,18 @@ import org.springframework.util.StringUtils;
  * ...or use {@link #parse(String)} to parse the coordinates as a colon delimited string:
  * <code>&lt;groupId&gt;:&lt;artifactId&gt;[:&lt;extension&gt;[:&lt;classifier&gt;]]:&lt;version&gt;</code>
  * <pre>
- * MavenCoordinates.parse("org.springframework.sample:some-app:2.0.0);
- * MavenCoordinates.parse("org.springframework.sample:some-app:jar:exec:2.0.0);
+ * MavenResource.parse("org.springframework.sample:some-app:2.0.0);
+ * MavenResource.parse("org.springframework.sample:some-app:jar:exec:2.0.0);
  * </pre>
  * </p>
  * @author David Turanski
  * @author Mark Fisher
  * @author Patrick Peralta
  */
-public class MavenCoordinates implements ArtifactMetadata {
+public class MavenResource extends AbstractResource {
+
+	private static final File LOCAL_REPO = new File(System.getProperty("user.home")
+			+ File.separator + ".m2" + File.separator + "repository");
 
 	/**
 	 * The default extension for the artifact.
@@ -88,9 +95,10 @@ public class MavenCoordinates implements ArtifactMetadata {
 	 */
 	private final String version;
 
+	private final MavenArtifactResolver resolver = new MavenArtifactResolver(LOCAL_REPO, null);
 
 	/**
-	 * Construct a {@code MavenCoordinates} object.
+	 * Construct a {@code MavenResource} object.
 	 *
 	 * @param groupId group ID for artifact
 	 * @param artifactId artifact ID
@@ -98,7 +106,7 @@ public class MavenCoordinates implements ArtifactMetadata {
 	 * @param classifier artifact classifier - can be null
 	 * @param version artifact version
 	 */
-	private MavenCoordinates(String groupId, String artifactId, String extension, String classifier, String version) {
+	private MavenResource(String groupId, String artifactId, String extension, String classifier, String version) {
 		Assert.hasText(groupId, "'groupId' cannot be blank");
 		Assert.hasText(artifactId, "'artifactId' cannot be blank");
 		Assert.hasText(extension, "'extension' cannot be blank");
@@ -146,14 +154,29 @@ public class MavenCoordinates implements ArtifactMetadata {
 	}
 
 	@Override
+	public String getDescription() {
+		return this.toString();
+	}
+
+	@Override
+	public InputStream getInputStream() throws IOException {
+		return resolver.resolve(this).getInputStream();
+	}
+
+	@Override
+	public File getFile() throws IOException {
+		return resolver.resolve(this).getFile();
+	}
+
+	@Override
 	public final boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof MavenCoordinates)) {
+		if (!(o instanceof MavenResource)) {
 			return false;
 		}
-		MavenCoordinates that = (MavenCoordinates) o;
+		MavenResource that = (MavenResource) o;
 		return this.groupId.equals(that.groupId) &&
 				this.artifactId.equals(that.artifactId) &&
 				this.extension.equals(that.extension) &&
@@ -192,7 +215,7 @@ public class MavenCoordinates implements ArtifactMetadata {
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
 	 * @return the instance
 	 */
-	public static MavenCoordinates parse(String coordinates) {
+	public static MavenResource parse(String coordinates) {
 		Assert.hasText(coordinates);
 		Pattern p = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
 		Matcher m = p.matcher(coordinates);
@@ -203,9 +226,8 @@ public class MavenCoordinates implements ArtifactMetadata {
 		String extension = StringUtils.hasLength(m.group(4)) ? m.group(4) : DEFAULT_EXTENSION;
 		String classifier = StringUtils.hasLength(m.group(6)) ? m.group(6) : EMPTY_CLASSIFIER;
 		String version = m.group(7);
-		return new MavenCoordinates(groupId, artifactId, extension, classifier, version);
+		return new MavenResource(groupId, artifactId, extension, classifier, version);
 	}
-
 
 	public static class Builder {
 
@@ -244,8 +266,8 @@ public class MavenCoordinates implements ArtifactMetadata {
 			return this;
 		}
 
-		public MavenCoordinates build() {
-			return new MavenCoordinates(groupId, artifactId, extension, classifier, version);
+		public MavenResource build() {
+			return new MavenResource(groupId, artifactId, extension, classifier, version);
 		}
 	}
 }
