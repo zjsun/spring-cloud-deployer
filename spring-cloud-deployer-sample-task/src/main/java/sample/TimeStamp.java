@@ -26,42 +26,33 @@ import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
 
 /**
- * @author Mark Fisher
+ * @author Janne Valkealahti
  */
-public class TickTock {
+public class TimeStamp {
 
 	public static void main(String[] args) throws InterruptedException {
 		LocalAppDeployer deployer = new LocalAppDeployer();
-		AppDeploymentId logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
-		AppDeploymentId timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
-		for (int i = 0; i < 12; i++) {
-			Thread.sleep(5 * 1000);
-			System.out.println("time: " + deployer.status(timeId));
-			System.out.println("log:  " + deployer.status(logId));
+		AppDeploymentId timestampId = deployer.deploy(createAppDeploymentRequest("timestamp-task", "timestamptask"));
+		for (int i = 0; i < 50; i++) {
+			Thread.sleep(100);
+			System.out.println("timestamp: " + deployer.status(timestampId));
 		}
-		deployer.undeploy(timeId);
-		deployer.undeploy(logId);
-		System.out.println("time after undeploy: " + deployer.status(timeId));
-		System.out.println("log after undeploy:  " + deployer.status(logId));
+		// well yes, timestamp completes quickly but with undeploy
+		// we could force 'cancel' running task
+		deployer.undeploy(timestampId);
+		System.out.println("timestamp after undeploy: " + deployer.status(timestampId));
 	}
 
 	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
 		MavenResource resource = new MavenResource.Builder()
 				.setArtifactId(app)
-				.setGroupId("org.springframework.cloud.stream.module")
+				.setGroupId("org.springframework.cloud.task.module")
 				.setVersion("1.0.0.BUILD-SNAPSHOT")
 				.setExtension("jar")
 				.setClassifier("exec")
 				.build();
 		Map<String, String> properties = new HashMap<>();
 		properties.put("server.port", "0");
-		if (app.endsWith("-source")) {
-			properties.put("spring.cloud.stream.bindings.output.destination", stream);
-		}
-		else {
-			properties.put("spring.cloud.stream.bindings.input.destination", stream);
-			properties.put("spring.cloud.stream.bindings.input.group", "default");
-		}
 		AppDefinition definition = new AppDefinition(app, stream, properties);
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 		return request;

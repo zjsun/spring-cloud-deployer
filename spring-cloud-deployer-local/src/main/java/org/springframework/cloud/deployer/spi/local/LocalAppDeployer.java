@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,9 +226,15 @@ public class LocalAppDeployer implements AppDeployer {
 
 		@Override
 		public DeploymentState getState() {
-			boolean alive = isAlive(process);
-			if (!alive) {
-				return DeploymentState.failed;
+			Integer exit = getProcessExitValue(process);
+			// TODO: consider using exit code mapper concept from batch
+			if (exit != null) {
+				if (exit == 0) {
+					return DeploymentState.complete;
+				}
+				else {
+					return DeploymentState.failed;
+				}
 			}
 			try {
 				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -249,6 +255,23 @@ public class LocalAppDeployer implements AppDeployer {
 			result.put("stderr", stderr.getAbsolutePath());
 			result.put("url", url.toString());
 			return result;
+		}
+	}
+
+	/**
+	 * Returns the process exit value. We explicitly use Integer instead of int
+	 * to indicate that if {@code NULL} is returned, the process is still running.
+	 *
+	 * @param process the process
+	 * @return the process exit value or {@code NULL} if process is still alive
+	 */
+	private static Integer getProcessExitValue(Process process) {
+		try {
+			return process.exitValue();
+		}
+		catch (IllegalThreadStateException e) {
+			// process is still alive
+			return null;
 		}
 	}
 
