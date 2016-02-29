@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi.status;
+package org.springframework.cloud.deployer.spi.process;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,30 +22,27 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.cloud.deployer.spi.AppDeploymentId;
-import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
-
 /**
- * Status of an {@link AppDeploymentId} which is initially constructed
- * from {@link AppDeploymentRequest} and runtime deployment properties by a deployer
- * during a deployment. This status is composed of an aggregate of
- * all individual app deployments.
+ * Status of a {@link ProcessDeploymentId} which is initially constructed from
+ * a {@link ProcessDeploymentRequest} and runtime deployment properties by a
+ * deployer during deployment. This status is composed of an aggregate of all
+ * individual app instance deployments for the process' underlying app.
  * <p>
- * Consumers of the SPI obtain app status via
- * {@link org.springframework.cloud.deployer.spi.AppDeployer#status},
+ * Consumers of the SPI obtain the process status via
+ * {@link org.springframework.cloud.deployer.spi.process.ProcessDeployer#status},
  * whereas SPI implementations create instances of this class via
- * {@link AppStatus.Builder}.
+ * {@link ProcessStatus.Builder}.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
  * @see AppInstanceStatus
  */
-public class AppStatus {
+public class ProcessStatus {
 
 	/**
-	 * The key of the app this status is for.
+	 * The key of the process this status is for.
 	 */
-	private final AppDeploymentId appDeploymentId;
+	private final ProcessDeploymentId processDeploymentId;
 
 	/**
 	 * Map of {@link AppInstanceStatus} keyed by a unique identifier
@@ -54,27 +51,29 @@ public class AppStatus {
 	private final Map<String, AppInstanceStatus> instances = new HashMap<String, AppInstanceStatus>();
 
 	/**
-	 * Construct a new {@code AppStatus}.
-	 * @param appDeploymentId key of the app this status is for
-	 */
-	protected AppStatus(AppDeploymentId appDeploymentId) {
-		this.appDeploymentId = appDeploymentId;
-	}
-
-	/**
-	 * Return the app deployment id for the app.
-	 * @return app deployment id
-	 */
-	public AppDeploymentId getAppDeploymentId() {
-		return appDeploymentId;
-	}
-
-	/**
-	 * Return the deployment state for the the app. If the descriptor
-	 * indicates multiple instances, this state represents an aggregate
-	 * of all individual instances.
+	 * Construct a new {@code ProcessStatus}.
 	 *
-	 * @return deployment state for the app
+	 * @param processDeploymentId key of the process this status is for
+	 */
+	protected ProcessStatus(ProcessDeploymentId processDeploymentId) {
+		this.processDeploymentId = processDeploymentId;
+	}
+
+	/**
+	 * Return the process deployment id for the process.
+	 *
+	 * @return process deployment id
+	 */
+	public ProcessDeploymentId getProcessDeploymentId() {
+		return processDeploymentId;
+	}
+
+	/**
+	 * Return the deployment state for the the process. If the descriptor
+	 * indicates multiple instances, this state represents an aggregate
+	 * of all individual app instances.
+	 *
+	 * @return deployment state for the process
 	 */
 	public DeploymentState getState() {
 		Set<DeploymentState> states = new HashSet<>();
@@ -124,34 +123,34 @@ public class AppStatus {
 	}
 
 	/**
-	 * Return a {@code Builder} for {@code AppStatus}.
-	 * @param key of the app this status is for
-	 * @return {@code Builder} for {@code AppStatus}
+	 * Return a {@code Builder} for {@code ProcessStatus}.
+	 * @param key of the process this status is for
+	 * @return {@code Builder} for {@code ProcessStatus}
 	 */
-	public static Builder of(AppDeploymentId key) {
+	public static Builder of(ProcessDeploymentId key) {
 		return new Builder(key);
 	}
 
 	/**
-	 * Utility class constructing an instance of a {@link AppStatus}
+	 * Utility class constructing an instance of a {@link ProcessStatus}
 	 * using a builder pattern.
 	 */
 	public static class Builder {
 
-		private final AppStatus status;
+		private final ProcessStatus status;
 
 		/**
 		 * Instantiates a new builder.
 		 *
-		 * @param key the app deployment id
+		 * @param key the process deployment id
 		 */
-		private Builder(AppDeploymentId key) {
-			this.status = new AppStatus(key);
+		private Builder(ProcessDeploymentId key) {
+			this.status = new ProcessStatus(key);
 		}
 
 		/**
 		 * Add an instance of {@code AppInstanceStatus} to build the status for
-		 * the app. This will be invoked once per individual app instance.
+		 * the process. This will be invoked once per individual app instance.
 		 *
 		 * @param instance status of individual app deployment
 		 * @return this {@code Builder}
@@ -162,12 +161,12 @@ public class AppStatus {
 		}
 
 		/**
-		 * Return a new instance of {@code AppStatus} based on
+		 * Return a new instance of {@code ProcessStatus} based on
 		 * the provided individual app instances via
 		 * {@link #with(AppInstanceStatus)}.
-		 * @return new instance of {@code AppStatus}
+		 * @return new instance of {@code ProcessStatus}
 		 */
-		public AppStatus build() {
+		public ProcessStatus build() {
 			return status;
 		}
 	}

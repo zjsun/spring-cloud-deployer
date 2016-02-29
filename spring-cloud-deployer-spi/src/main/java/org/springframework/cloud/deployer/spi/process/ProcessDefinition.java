@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi;
+package org.springframework.cloud.deployer.spi.process;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,24 +24,27 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 
 /**
- * {@code AppDefinition} contains information about an app itself.
- * Deployer should not modify parameters in this class as those are
- * meant for an actual app as is. Deployer's only responsibility is to pass
- * those parameters into a runtime environment in a way that parameters are
- * available in a running application.
+ * {@code ProcessDefinition} contains information about an app that is intended
+ * to run indefinitely (as opposed to a
+ * {@link org.springframework.cloud.deployer.spi.task.TaskDefinition}).
+ *
+ * A deployer may not modify properties in this class as those are meant for an
+ * actual app as is. The deployer's only responsibility is to pass those
+ * properties into a runtime environment in a way that they are available in a
+ * running application.
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
  */
-public class AppDefinition {
+public class ProcessDefinition {
 
 	/**
-	 * Name of app.
+	 * Name of the app.
 	 */
 	private final String name;
 
 	/**
-	 * Name of group this app instance belongs to. May be {@code null}.
+	 * Name of group this app belongs to. May be {@code null}.
 	 */
 	private final String group;
 
@@ -51,13 +54,13 @@ public class AppDefinition {
 	private final Map<String, String> properties;
 
 	/**
-	 * Construct an {@code AppDefinition}.
+	 * Construct a {@code ProcessDefinition}.
 	 *
 	 * @param name name of app
 	 * @param group group this app belongs to; may be {@code null}
 	 * @param properties app properties; may be {@code null}
 	 */
-	public AppDefinition(String name, String group, Map<String, String> properties) {
+	public ProcessDefinition(String name, String group, Map<String, String> properties) {
 		Assert.notNull(name, "name must not be null");
 		this.name = name;
 		this.group = group;

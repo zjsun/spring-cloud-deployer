@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
-import org.springframework.cloud.deployer.spi.AppDefinition;
-import org.springframework.cloud.deployer.spi.AppDeploymentId;
-import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
+import org.springframework.cloud.deployer.spi.local.LocalProcessDeployer;
+import org.springframework.cloud.deployer.spi.process.ProcessDefinition;
+import org.springframework.cloud.deployer.spi.process.ProcessDeploymentId;
+import org.springframework.cloud.deployer.spi.process.ProcessDeploymentRequest;
 
 /**
  * @author Mark Fisher
@@ -31,9 +31,9 @@ import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
 public class TickTock {
 
 	public static void main(String[] args) throws InterruptedException {
-		LocalAppDeployer deployer = new LocalAppDeployer();
-		AppDeploymentId logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
-		AppDeploymentId timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
+		LocalProcessDeployer deployer = new LocalProcessDeployer();
+		ProcessDeploymentId logId = deployer.deploy(createProcessDeploymentRequest("log-sink", "ticktock"));
+		ProcessDeploymentId timeId = deployer.deploy(createProcessDeploymentRequest("time-source", "ticktock"));
 		for (int i = 0; i < 12; i++) {
 			Thread.sleep(5 * 1000);
 			System.out.println("time: " + deployer.status(timeId));
@@ -45,7 +45,7 @@ public class TickTock {
 		System.out.println("log after undeploy:  " + deployer.status(logId));
 	}
 
-	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
+	private static ProcessDeploymentRequest createProcessDeploymentRequest(String app, String stream) {
 		MavenResource resource = new MavenResource.Builder()
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.stream.module")
@@ -62,8 +62,8 @@ public class TickTock {
 			properties.put("spring.cloud.stream.bindings.input.destination", stream);
 			properties.put("spring.cloud.stream.bindings.input.group", "default");
 		}
-		AppDefinition definition = new AppDefinition(app, stream, properties);
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+		ProcessDefinition definition = new ProcessDefinition(app, stream, properties);
+		ProcessDeploymentRequest request = new ProcessDeploymentRequest(definition, resource);
 		return request;
 	}
 }

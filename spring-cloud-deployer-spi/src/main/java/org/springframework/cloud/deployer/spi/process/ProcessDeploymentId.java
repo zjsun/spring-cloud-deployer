@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi;
+package org.springframework.cloud.deployer.spi.process;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -23,58 +23,61 @@ import java.util.Map;
 import org.springframework.util.Assert;
 
 /**
- * {@code AppDeploymentId} is a representation constructed by a deployer based on a
- * {@link AppDeploymentRequest}. {@code AppDeploymentId} contains everything what
- * deployer needs to know order to either un-deploy or get a status of an app.
+ * A representation constructed by a deployer based on a
+ * {@link ProcessDeploymentRequest}. An instance of this class contains
+ * everything a deployer needs to know in order to either un-deploy or check the
+ * status of the process.
  *
- * Contract between {@link AppDeploymentRequest#getDeploymentProperties()} and
- * {{@link AppDeploymentId#getProperties()} is up to the deployer implementation to decide
- * and no other component should modify properties in this instance. For example, deployer
- * may use deployment properties passed via {@link AppDeploymentRequest} as a hint to do
- * something more clever and actual information needed for un-deploy or status would then
- * be available from properties in this class.
+ * The contract between
+ * {@link ProcessDeploymentRequest#getEnvironmentProperties()} and
+ * {@link ProcessDeploymentId#getProperties()} is up to the deployer
+ * implementation to decide and no other component may modify properties in this
+ * instance. For example, the deployer may use environment properties passed via
+ * the {@link ProcessDeploymentRequest} as a hint to do something more clever
+ * and actual information needed to un-deploy or check the status of the process
+ * would then be available from properties in this class.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
  * @author Janne Valkealahti
  */
-public class AppDeploymentId implements Serializable {
+public class ProcessDeploymentId implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The name of the associated group this app belongs to.
+	 * The name of the associated group this process belongs to.
 	 */
 	private final String group;
 
 	/**
-	 * The name provided to uniquely identify the app within a group.
+	 * The name provided to uniquely identify the process within a group.
 	 */
 	private final String name;
 
 	/**
-	 * The runtime deployment properties for app.
+	 * The runtime deployment properties for the underlying app.
 	 */
 	private final Map<String, String> properties;
 
 	/**
-	 * Instantiates a new app deployment id.
+	 * Instantiates a new process deployment id.
 	 *
 	 * @param group the group
 	 * @param name the name
 	 */
-	public AppDeploymentId(String group, String name) {
+	public ProcessDeploymentId(String group, String name) {
 		this(group, name, null);
 	}
 
 	/**
-	 * Instantiates a new app deployment id.
+	 * Instantiates a new process deployment id.
 	 *
 	 * @param group the group
 	 * @param name the name
 	 * @param properties the properties
 	 */
-	public AppDeploymentId(String group, String name, Map<String, String> properties) {
+	public ProcessDeploymentId(String group, String name, Map<String, String> properties) {
 		Assert.hasText(group);
 		Assert.hasText(name);
 		Assert.doesNotContain(group, ".");
@@ -87,7 +90,7 @@ public class AppDeploymentId implements Serializable {
 	}
 
 	/**
-	 * Gets the group name.
+	 * Returns the group name.
 	 *
 	 * @return the group name
 	 */
@@ -96,16 +99,16 @@ public class AppDeploymentId implements Serializable {
 	}
 
 	/**
-	 * Gets the app name.
+	 * Returns the process name.
 	 *
-	 * @return the app name
+	 * @return the process name
 	 */
 	public String getName() {
 		return name;
 	}
 
 	/**
-	 * Gets the deployment properties.
+	 * Returns the properties for the underlying app.
 	 *
 	 * @return the deployment properties
 	 */
@@ -122,7 +125,7 @@ public class AppDeploymentId implements Serializable {
 			return false;
 		}
 
-		AppDeploymentId that = (AppDeploymentId) o;
+		ProcessDeploymentId that = (ProcessDeploymentId) o;
 		return this.group.equals(that.group)
 				&& this.name.equals(that.name);
 	}
@@ -137,9 +140,9 @@ public class AppDeploymentId implements Serializable {
 	/**
 	 * Return a string containing the ID fields separated by
 	 * periods. This string may be used as a key in a database
-	 * to uniquely identify an app.
+	 * to uniquely identify a process.
 	 *
-	 * @return string representation of this ID
+	 * @return string representation of this process
 	 */
 	@Override
 	public String toString() {

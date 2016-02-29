@@ -22,13 +22,13 @@ import java.nio.file.Path;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration properties for the {@link LocalAppDeployer}
+ * Configuration properties for the local deployer.
  *
  * @author Eric Bottard
  * @author Mark Fisher
  */
 @ConfigurationProperties(prefix = "deployer.local")
-public class LocalAppDeployerProperties {
+public class LocalDeployerProperties {
 
 	/**
 	 * Directory in which all created processes will run and create log files.

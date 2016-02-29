@@ -20,30 +20,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
-import org.springframework.cloud.deployer.spi.AppDefinition;
-import org.springframework.cloud.deployer.spi.AppDeploymentId;
-import org.springframework.cloud.deployer.spi.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
+import org.springframework.cloud.deployer.spi.local.LocalTaskLauncher;
+import org.springframework.cloud.deployer.spi.task.TaskDefinition;
+import org.springframework.cloud.deployer.spi.task.TaskLaunchId;
+import org.springframework.cloud.deployer.spi.task.TaskLaunchRequest;
 
 /**
  * @author Janne Valkealahti
+ * @author Mark Fisher
  */
 public class TimeStamp {
 
 	public static void main(String[] args) throws InterruptedException {
-		LocalAppDeployer deployer = new LocalAppDeployer();
-		AppDeploymentId timestampId = deployer.deploy(createAppDeploymentRequest("timestamp-task", "timestamptask"));
+		LocalTaskLauncher launcher = new LocalTaskLauncher();
+		TaskLaunchId timestampId = launcher.launch(createTaskLaunchRequest("timestamp-task"));
 		for (int i = 0; i < 50; i++) {
 			Thread.sleep(100);
-			System.out.println("timestamp: " + deployer.status(timestampId));
+			System.out.println("timestamp: " + launcher.status(timestampId));
 		}
-		// well yes, timestamp completes quickly but with undeploy
-		// we could force 'cancel' running task
-		deployer.undeploy(timestampId);
-		System.out.println("timestamp after undeploy: " + deployer.status(timestampId));
+		// timestamp completes quickly, but we can 'cancel' the running task
+		launcher.cancel(timestampId);
+		System.out.println("timestamp after cancel: " + launcher.status(timestampId));
 	}
 
-	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
+	private static TaskLaunchRequest createTaskLaunchRequest(String app) {
 		MavenResource resource = new MavenResource.Builder()
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.task.module")
@@ -53,8 +53,8 @@ public class TimeStamp {
 				.build();
 		Map<String, String> properties = new HashMap<>();
 		properties.put("server.port", "0");
-		AppDefinition definition = new AppDefinition(app, stream, properties);
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
+		TaskDefinition definition = new TaskDefinition(app, properties);
+		TaskLaunchRequest request = new TaskLaunchRequest(definition, resource);
 		return request;
 	}
 }
