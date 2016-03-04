@@ -49,11 +49,6 @@ public enum DeploymentState {
 	undeployed,
 
 	/**
-	 * The app completed execution. Currently used for tasks only.
-	 */
-	complete,
-
-	/**
 	 * In the case of multiple apps, some have successfully deployed, while
 	 * others have not. This state does not apply for individual app instances.
 	 */
