@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.deployer.spi.task;
 
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+
 /**
  * SPI defining a runtime environment capable of launching and managing the
  * lifecycle of tasks. The term 'task' in the context of a {@code TaskLauncher}
@@ -36,7 +38,7 @@ package org.springframework.cloud.deployer.spi.task;
 public interface TaskLauncher {
 
 	/**
-	 * Launch a task using a {@link TaskLaunchRequest}. The returned
+	 * Launch a task for the provided {@link AppDeploymentRequest}. The returned
 	 * {@link TaskLaunchId} may later be used with {@link #cancel(TaskLaunchId)}
 	 * or {@link #status(TaskLaunchId)} to cancel a task or get its status, respectively.
 	 *
@@ -47,7 +49,7 @@ public interface TaskLauncher {
 	 * @param request the task launch request
 	 * @return the id for the launched task
 	 */
-	TaskLaunchId launch(TaskLaunchRequest request);
+	TaskLaunchId launch(AppDeploymentRequest request);
 
 	/**
 	 * Cancel the task corresponding to the provided {@link TaskLaunchId}.

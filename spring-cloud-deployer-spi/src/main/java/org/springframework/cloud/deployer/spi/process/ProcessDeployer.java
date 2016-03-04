@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.deployer.spi.process;
 
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+
 /**
  * SPI defining a runtime environment capable of launching and managing the
  * lifecycle of apps as indefinitely running processes. The term 'process' in
@@ -36,7 +38,17 @@ package org.springframework.cloud.deployer.spi.process;
 public interface ProcessDeployer {
 
 	/**
-	 * Deploy a process using an {@link ProcessDeploymentRequest}. The returned
+	 * The environment property for the count (number of app instances).
+	 */
+	public static String COUNT_PROPERTY_KEY = "spring.cloud.deployer.count";
+
+	/**
+	 * The environment property for the group to which an app belongs.
+	 */
+	public static String GROUP_PROPERTY_KEY = "spring.cloud.deployer.group";
+
+	/**
+	 * Deploy a process using an {@link AppDeploymentRequest}. The returned
 	 * {@link ProcessDeploymentId} is later used with
 	 * {@link #undeploy(ProcessDeploymentId)} or
 	 * {@link #status(ProcessDeploymentId)} to undeploy an app or check its
@@ -46,13 +58,11 @@ public interface ProcessDeployer {
 	 * successful deployment may not be assumed upon return. To determine the
 	 * status of a deployment, invoke {@link #status(ProcessDeploymentId)}.
 	 *
-	 * @param request
-	 *            the process deployment request
+	 * @param request the app deployment request
 	 * @return the deployment id for the process
-	 * @throws IllegalStateException
-	 *             if the process has already been deployed
+	 * @throws IllegalStateException if the process has already been deployed
 	 */
-	ProcessDeploymentId deploy(ProcessDeploymentRequest request);
+	ProcessDeploymentId deploy(AppDeploymentRequest request);
 
 	/**
 	 * Un-deploy a process using a {@link ProcessDeploymentId}. Implementations

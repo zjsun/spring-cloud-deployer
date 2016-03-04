@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
+import org.springframework.cloud.deployer.spi.core.AppDefinition;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalTaskLauncher;
-import org.springframework.cloud.deployer.spi.task.TaskDefinition;
 import org.springframework.cloud.deployer.spi.task.TaskLaunchId;
-import org.springframework.cloud.deployer.spi.task.TaskLaunchRequest;
 
 /**
  * @author Janne Valkealahti
@@ -33,7 +33,7 @@ public class TimeStamp {
 
 	public static void main(String[] args) throws InterruptedException {
 		LocalTaskLauncher launcher = new LocalTaskLauncher();
-		TaskLaunchId timestampId = launcher.launch(createTaskLaunchRequest("timestamp-task"));
+		TaskLaunchId timestampId = launcher.launch(createAppDeploymentRequest("timestamp-task"));
 		for (int i = 0; i < 50; i++) {
 			Thread.sleep(100);
 			System.out.println("timestamp: " + launcher.status(timestampId));
@@ -43,7 +43,7 @@ public class TimeStamp {
 		System.out.println("timestamp after cancel: " + launcher.status(timestampId));
 	}
 
-	private static TaskLaunchRequest createTaskLaunchRequest(String app) {
+	private static AppDeploymentRequest createAppDeploymentRequest(String app) {
 		MavenResource resource = new MavenResource.Builder()
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.task.module")
@@ -53,8 +53,8 @@ public class TimeStamp {
 				.build();
 		Map<String, String> properties = new HashMap<>();
 		properties.put("server.port", "0");
-		TaskDefinition definition = new TaskDefinition(app, properties);
-		TaskLaunchRequest request = new TaskLaunchRequest(definition, resource);
+		AppDefinition definition = new AppDefinition(app, properties);
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 		return request;
 	}
 }

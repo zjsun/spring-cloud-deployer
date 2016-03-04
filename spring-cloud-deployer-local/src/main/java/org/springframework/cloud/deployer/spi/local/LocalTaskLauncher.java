@@ -34,9 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLaunchId;
-import org.springframework.cloud.deployer.spi.task.TaskLaunchRequest;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
 import org.springframework.core.io.Resource;
@@ -71,7 +71,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public TaskLaunchId launch(TaskLaunchRequest request) {
+	public TaskLaunchId launch(AppDeploymentRequest request) {
 		if (this.logPathRoot == null) {
 			try {
 				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");

@@ -16,14 +16,16 @@
 
 package sample;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
+import org.springframework.cloud.deployer.spi.core.AppDefinition;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalProcessDeployer;
-import org.springframework.cloud.deployer.spi.process.ProcessDefinition;
+import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
 import org.springframework.cloud.deployer.spi.process.ProcessDeploymentId;
-import org.springframework.cloud.deployer.spi.process.ProcessDeploymentRequest;
 
 /**
  * @author Mark Fisher
@@ -32,8 +34,8 @@ public class TickTock {
 
 	public static void main(String[] args) throws InterruptedException {
 		LocalProcessDeployer deployer = new LocalProcessDeployer();
-		ProcessDeploymentId logId = deployer.deploy(createProcessDeploymentRequest("log-sink", "ticktock"));
-		ProcessDeploymentId timeId = deployer.deploy(createProcessDeploymentRequest("time-source", "ticktock"));
+		ProcessDeploymentId logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
+		ProcessDeploymentId timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
 		for (int i = 0; i < 12; i++) {
 			Thread.sleep(5 * 1000);
 			System.out.println("time: " + deployer.status(timeId));
@@ -45,7 +47,7 @@ public class TickTock {
 		System.out.println("log after undeploy:  " + deployer.status(logId));
 	}
 
-	private static ProcessDeploymentRequest createProcessDeploymentRequest(String app, String stream) {
+	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
 		MavenResource resource = new MavenResource.Builder()
 				.setArtifactId(app)
 				.setGroupId("org.springframework.cloud.stream.module")
@@ -62,8 +64,9 @@ public class TickTock {
 			properties.put("spring.cloud.stream.bindings.input.destination", stream);
 			properties.put("spring.cloud.stream.bindings.input.group", "default");
 		}
-		ProcessDefinition definition = new ProcessDefinition(app, stream, properties);
-		ProcessDeploymentRequest request = new ProcessDeploymentRequest(definition, resource);
+		AppDefinition definition = new AppDefinition(app, properties);
+		Map<String, String> environmentProperties = Collections.singletonMap(ProcessDeployer.GROUP_PROPERTY_KEY, stream);
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, environmentProperties);
 		return request;
 	}
 }

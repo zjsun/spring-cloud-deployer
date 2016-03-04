@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi.process;
+package org.springframework.cloud.deployer.spi.core;
 
 import java.util.Collections;
 import java.util.Map;
@@ -23,49 +23,47 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
 /**
- * A representation of a request to deploy an app as an indefinitely running process.
+ * Representation of an app deployment request. This includes the
+ * {@link AppDefinition}, the {@link Resource} representing its deployable
+ * artifact, and any environment properties.
  *
- * Environment properties are always related to a specific implementation of the SPI and will never
- * be passed into a task itself. For example, a runtime container may allow the definition of
- * various settings for a context where the actual task is executed, such as allowed memory, cpu or
- * simply a way to define colocation like node labeling.
+ * Environment properties are related to a specific implementation of the SPI
+ * and will never be passed into an app itself. For example, a runtime container
+ * may allow the definition of various settings for a context where the actual
+ * app is executed, such as allowed memory, cpu or simply a way to define
+ * colocation like node labeling.
  *
- * For passing properties or parameters into an app, use {@link ProcessDefinition#getProperties()}.
+ * For passing properties or parameters into the app itself, use
+ * {@link AppDefinition#getProperties()}.
  *
- * @author Patrick Peralta
  * @author Mark Fisher
  * @author Janne Valkealahti
  */
-public class ProcessDeploymentRequest {
+public class AppDeploymentRequest {
 
 	/**
-	 * Process definition.
+	 * App definition.
 	 */
-	private final ProcessDefinition definition;
+	private final AppDefinition definition;
 
 	/**
-	 * Resource for the deployable artifact of the underlying app.
+	 * Resource representing the artifact of the underlying app.
 	 */
 	private final Resource resource;
 
 	/**
-	 * Map of environment properties for the process.
+	 * Map of environment properties for the target runtime of the app.
 	 */
 	private final Map<String, String> environmentProperties;
 
 	/**
-	 * The environment property for the count (number of app instances).
-	 */
-	public static String COUNT_PROPERTY_KEY = "org.springframework.cloud.deployer.spi.count";
-
-	/**
-	 * Construct a {@code ProcessDeploymentRequest}.
+	 * Construct an {@code AppDeploymentRequest}.
 	 *
-	 * @param definition process definition
-	 * @param resource resource for the underlying app's deployable artifact
+	 * @param definition app definition
+	 * @param resource resource for the underlying app's artifact
 	 * @param environmentProperties map of environment properties; may be {@code null}
 	 */
-	public ProcessDeploymentRequest(ProcessDefinition definition, Resource resource,
+	public AppDeploymentRequest(AppDefinition definition, Resource resource,
 			Map<String, String> environmentProperties) {
 		Assert.notNull(definition, "definition must not be null");
 		Assert.notNull(resource, "resource must not be null");
@@ -77,20 +75,19 @@ public class ProcessDeploymentRequest {
 	}
 
 	/**
-	 * Construct a {@code ProcessDeploymentRequest} for one instance and
-	 * no environment properties.
+	 * Construct an {@code AppDeploymentRequest} with no environment properties.
 	 *
-	 * @param definition process definition
-	 * @param resource resource for this app's deployable artifact
+	 * @param definition app definition
+	 * @param resource resource for the underlying app's artifact
 	 */
-	public ProcessDeploymentRequest(ProcessDefinition definition, Resource resource) {
+	public AppDeploymentRequest(AppDefinition definition, Resource resource) {
 		this(definition, resource, null);
 	}
 
 	/**
 	 * @see #definition
 	 */
-	public ProcessDefinition getDefinition() {
+	public AppDefinition getDefinition() {
 		return definition;
 	}
 

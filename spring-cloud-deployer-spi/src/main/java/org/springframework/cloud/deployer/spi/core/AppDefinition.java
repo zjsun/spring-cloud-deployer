@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi.process;
+package org.springframework.cloud.deployer.spi.core;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,9 +24,7 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 
 /**
- * {@code ProcessDefinition} contains information about an app that is intended
- * to run indefinitely (as opposed to a
- * {@link org.springframework.cloud.deployer.spi.task.TaskDefinition}).
+ * Definition of an app, including its name and its properties.
  *
  * A deployer may not modify properties in this class as those are meant for an
  * actual app as is. The deployer's only responsibility is to pass those
@@ -36,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Janne Valkealahti
  */
-public class ProcessDefinition {
+public class AppDefinition {
 
 	/**
 	 * Name of the app.
@@ -44,26 +42,19 @@ public class ProcessDefinition {
 	private final String name;
 
 	/**
-	 * Name of group this app belongs to. May be {@code null}.
-	 */
-	private final String group;
-
-	/**
 	 * Properties for this app.
 	 */
 	private final Map<String, String> properties;
 
 	/**
-	 * Construct a {@code ProcessDefinition}.
+	 * Construct an {@code AppDefinition}.
 	 *
 	 * @param name name of app
-	 * @param group group this app belongs to; may be {@code null}
 	 * @param properties app properties; may be {@code null}
 	 */
-	public ProcessDefinition(String name, String group, Map<String, String> properties) {
+	public AppDefinition(String name, Map<String, String> properties) {
 		Assert.notNull(name, "name must not be null");
 		this.name = name;
-		this.group = group;
 		this.properties = properties == null
 				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(new HashMap<String, String>(properties));
@@ -79,16 +70,7 @@ public class ProcessDefinition {
 	}
 
 	/**
-	 * Return name of group this app instance belongs to.
-	 *
-	 * @return the group name
-	 */
-	public String getGroup() {
-		return group;
-	}
-
-	/**
-	 * Gets the app definition parameters. These parameters are passed into a running app.
+	 * Gets the app definition properties. These properties are passed into a running app.
 	 *
 	 * @return the unmodifiable map of app properties
 	 */
@@ -100,7 +82,6 @@ public class ProcessDefinition {
 	public String toString() {
 		return new ToStringCreator(this)
 				.append("name", this.name)
-				.append("group", this.group)
 				.append("properties", this.properties).toString();
 	}
 }

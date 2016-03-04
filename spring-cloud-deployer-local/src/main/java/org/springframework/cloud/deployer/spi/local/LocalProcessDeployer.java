@@ -36,11 +36,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.process.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.process.DeploymentState;
 import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
 import org.springframework.cloud.deployer.spi.process.ProcessDeploymentId;
-import org.springframework.cloud.deployer.spi.process.ProcessDeploymentRequest;
 import org.springframework.cloud.deployer.spi.process.ProcessStatus;
 import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
@@ -76,7 +76,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public ProcessDeploymentId deploy(ProcessDeploymentRequest request) {
+	public ProcessDeploymentId deploy(AppDeploymentRequest request) {
 		if (this.logPathRoot == null) {
 			try {
 				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
@@ -93,22 +93,23 @@ public class LocalProcessDeployer implements ProcessDeployer {
 		catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
-		ProcessDeploymentId processDeploymentId = new ProcessDeploymentId(request.getDefinition().getGroup(), request.getDefinition().getName());
+		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
+		ProcessDeploymentId processDeploymentId = new ProcessDeploymentId(group, request.getDefinition().getName());
 		List<Instance> processes = new ArrayList<>();
 		running.put(processDeploymentId, processes);
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
 		args.putAll(request.getEnvironmentProperties());
-		String jmxDomainName = String.format("%s.%s", request.getDefinition().getGroup(), request.getDefinition().getName());
+		String groupDeploymentId = request.getEnvironmentProperties().get(GROUP_DEPLOYMENT_ID);
+		if (groupDeploymentId == null) {
+			groupDeploymentId = group + "-" + System.currentTimeMillis();
+		}
+		String jmxDomainName = String.format("%s.%s", group, request.getDefinition().getName());
 		args.put(JMX_DEFAULT_DOMAIN_KEY, jmxDomainName);
 		args.put("endpoints.shutdown.enabled", "true");
 		args.put("endpoints.jmx.unique-names", "true");
 		try {
-			String groupDeploymentId = request.getEnvironmentProperties().get(GROUP_DEPLOYMENT_ID);
-			if (groupDeploymentId == null) {
-				groupDeploymentId = request.getDefinition().getGroup() + "-" + System.currentTimeMillis();
-			}
 			Path processDeploymentGroupDir = Paths.get(logPathRoot.toFile().getAbsolutePath(), groupDeploymentId);
 			if (!Files.exists(processDeploymentGroupDir)) {
 				Files.createDirectory(processDeploymentGroupDir);
@@ -119,7 +120,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 			if (properties.isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
-			String countProperty = request.getDefinition().getProperties().get(ProcessDeploymentRequest.COUNT_PROPERTY_KEY);
+			String countProperty = request.getDefinition().getProperties().get(COUNT_PROPERTY_KEY);
 			int count = (countProperty != null) ? Integer.parseInt(countProperty) : 1;
 			for (int i = 0; i < count; i++) {
 				int port = useDynamicPort ? SocketUtils.findAvailableTcpPort(DEFAULT_SERVER_PORT)
