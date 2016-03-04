@@ -23,7 +23,6 @@ import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalTaskLauncher;
-import org.springframework.cloud.deployer.spi.task.TaskLaunchId;
 
 /**
  * @author Janne Valkealahti
@@ -33,7 +32,7 @@ public class TimeStamp {
 
 	public static void main(String[] args) throws InterruptedException {
 		LocalTaskLauncher launcher = new LocalTaskLauncher();
-		TaskLaunchId timestampId = launcher.launch(createAppDeploymentRequest("timestamp-task"));
+		String timestampId = launcher.launch(createAppDeploymentRequest("timestamp-task"));
 		for (int i = 0; i < 50; i++) {
 			Thread.sleep(100);
 			System.out.println("timestamp: " + launcher.status(timestampId));

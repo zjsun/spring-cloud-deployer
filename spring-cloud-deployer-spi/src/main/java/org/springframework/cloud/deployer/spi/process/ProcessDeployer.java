@@ -26,7 +26,7 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
  *
  * The SPI itself doesn't expect the deployer to keep state of launched
  * processes, meaning it doesn't need to reconstruct all existing
- * {@link ProcessStatus}es or {@link ProcessDeploymentId}s needed to resolve a
+ * {@link ProcessStatus}es or the deployment IDs needed to resolve a
  * {@link ProcessStatus}. The use of the SPI is responsible for keeping track of
  * the state of all existing processes.
  *
@@ -48,40 +48,36 @@ public interface ProcessDeployer {
 	public static String GROUP_PROPERTY_KEY = "spring.cloud.deployer.group";
 
 	/**
-	 * Deploy a process using an {@link AppDeploymentRequest}. The returned
-	 * {@link ProcessDeploymentId} is later used with
-	 * {@link #undeploy(ProcessDeploymentId)} or
-	 * {@link #status(ProcessDeploymentId)} to undeploy an app or check its
-	 * status, respectively.
+	 * Deploy a process using an {@link AppDeploymentRequest}. The returned id
+	 * is later used with {@link #undeploy(String)} or {@link #status(String)}
+	 * to undeploy an app or check its status, respectively.
 	 *
 	 * Implementations may perform this operation asynchronously; therefore a
 	 * successful deployment may not be assumed upon return. To determine the
-	 * status of a deployment, invoke {@link #status(ProcessDeploymentId)}.
+	 * status of a deployment, invoke {@link #status(String)}.
 	 *
 	 * @param request the app deployment request
 	 * @return the deployment id for the process
 	 * @throws IllegalStateException if the process has already been deployed
 	 */
-	ProcessDeploymentId deploy(AppDeploymentRequest request);
+	String deploy(AppDeploymentRequest request);
 
 	/**
-	 * Un-deploy a process using a {@link ProcessDeploymentId}. Implementations
+	 * Un-deploy a process using its deployment id. Implementations
 	 * may perform this operation asynchronously; therefore a successful
 	 * un-deployment may not be assumed upon return. To determine the status of
-	 * a deployment, invoke {@link #status(ProcessDeploymentId)}.
+	 * a deployment, invoke {@link #status(String)}.
 	 *
-	 * @param id
-	 *            the process deployment id
-	 * @throws IllegalStateException
-	 *             if the process has not been deployed
+	 * @param id the process deployment id, as returned by {@link #deploy(AppDeploymentRequest)}
+	 * @throws IllegalStateException if the process has not been deployed
 	 */
-	void undeploy(ProcessDeploymentId id);
+	void undeploy(String id);
 
 	/**
-	 * Return the {@link ProcessStatus} for a process represented by a {@link ProcessDeploymentId}.
+	 * Return the {@link ProcessStatus} for a process represented by a deployment id.
 	 *
-	 * @param id the process deployment id
+	 * @param id the process deployment id, as returned by {@link #deploy(AppDeploymentRequest)}
 	 * @return the processs deployment status
 	 */
-	ProcessStatus status(ProcessDeploymentId id);
+	ProcessStatus status(String id);
 }

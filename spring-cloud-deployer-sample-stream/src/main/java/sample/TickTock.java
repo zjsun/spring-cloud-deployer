@@ -25,7 +25,6 @@ import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalProcessDeployer;
 import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
-import org.springframework.cloud.deployer.spi.process.ProcessDeploymentId;
 
 /**
  * @author Mark Fisher
@@ -34,8 +33,8 @@ public class TickTock {
 
 	public static void main(String[] args) throws InterruptedException {
 		LocalProcessDeployer deployer = new LocalProcessDeployer();
-		ProcessDeploymentId logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
-		ProcessDeploymentId timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
+		String logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
+		String timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
 		for (int i = 0; i < 12; i++) {
 			Thread.sleep(5 * 1000);
 			System.out.println("time: " + deployer.status(timeId));

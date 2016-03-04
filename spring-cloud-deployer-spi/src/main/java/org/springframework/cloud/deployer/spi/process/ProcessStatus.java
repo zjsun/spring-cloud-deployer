@@ -23,14 +23,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Status of a {@link ProcessDeploymentId} which is initially constructed from
- * a {@link ProcessDeploymentRequest} and runtime deployment properties by a
- * deployer during deployment. This status is composed of an aggregate of all
- * individual app instance deployments for the process' underlying app.
+ * Status of a process which is initially constructed from an
+ * {@link org.springframework.cloud.deployer.spi.core.AppDeploymentRequest} and
+ * runtime deployment properties by a deployer during deployment. This status is
+ * composed of an aggregate of all individual app instance deployments for the
+ * process' underlying app.
  * <p>
  * Consumers of the SPI obtain the process status via
- * {@link org.springframework.cloud.deployer.spi.process.ProcessDeployer#status},
- * whereas SPI implementations create instances of this class via
+ * {@link org.springframework.cloud.deployer.spi.process.ProcessDeployer#status(String)}
+ * , whereas SPI implementations create instances of this class via
  * {@link ProcessStatus.Builder}.
  *
  * @author Patrick Peralta
@@ -40,9 +41,9 @@ import java.util.Set;
 public class ProcessStatus {
 
 	/**
-	 * The key of the process this status is for.
+	 * The id of the process this status is for.
 	 */
-	private final ProcessDeploymentId processDeploymentId;
+	private final String processDeploymentId;
 
 	/**
 	 * Map of {@link AppInstanceStatus} keyed by a unique identifier
@@ -53,9 +54,9 @@ public class ProcessStatus {
 	/**
 	 * Construct a new {@code ProcessStatus}.
 	 *
-	 * @param processDeploymentId key of the process this status is for
+	 * @param processDeploymentId id of the process this status is for
 	 */
-	protected ProcessStatus(ProcessDeploymentId processDeploymentId) {
+	protected ProcessStatus(String processDeploymentId) {
 		this.processDeploymentId = processDeploymentId;
 	}
 
@@ -64,7 +65,7 @@ public class ProcessStatus {
 	 *
 	 * @return process deployment id
 	 */
-	public ProcessDeploymentId getProcessDeploymentId() {
+	public String getProcessDeploymentId() {
 		return processDeploymentId;
 	}
 
@@ -127,8 +128,8 @@ public class ProcessStatus {
 	 * @param key of the process this status is for
 	 * @return {@code Builder} for {@code ProcessStatus}
 	 */
-	public static Builder of(ProcessDeploymentId key) {
-		return new Builder(key);
+	public static Builder of(String id) {
+		return new Builder(id);
 	}
 
 	/**
@@ -144,8 +145,8 @@ public class ProcessStatus {
 		 *
 		 * @param key the process deployment id
 		 */
-		private Builder(ProcessDeploymentId key) {
-			this.status = new ProcessStatus(key);
+		private Builder(String id) {
+			this.status = new ProcessStatus(id);
 		}
 
 		/**

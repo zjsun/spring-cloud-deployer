@@ -21,13 +21,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Status of a {@link TaskLaunchId} which is initially constructed
- * from a {@link TaskLaunchRequest} and runtime properties by a {@link TaskLauncher}.
+ * Status of a task launch which is initially constructed from an
+ * {@link org.springframework.cloud.deployer.spi.core.AppDeploymentRequest} and
+ * runtime properties by a {@link TaskLauncher}.
  * <p>
  * Consumers of the SPI obtain task status via
  * {@link org.springframework.cloud.deployer.spi.task.TaskLauncher#status},
  * whereas SPI implementations create instances of this class via
- * {@link #TaskStatus(TaskLaunchId, LaunchState)}
+ * {@link #TaskStatus(String, LaunchState, Map)}
  *
  * @author Patrick Peralta
  * @author Mark Fisher
@@ -35,9 +36,9 @@ import java.util.Map;
 public class TaskStatus {
 
 	/**
-	 * The key of the task this status is for.
+	 * The id of the task this status is for.
 	 */
-	private final TaskLaunchId id;
+	private final String id;
 
 	/**
 	 * The {@link LaunchState} of the task.
@@ -51,11 +52,11 @@ public class TaskStatus {
 
 	/**
 	 * Construct a new {@code TaskStatus}.
-	 * @param taskLaunchId key of the task this status is for
+	 * @param id the id of the task launch this status is for
 	 * @param state the {@link LaunchState} of the task
 	 * @param attributes map of attributes for the task
 	 */
-	public TaskStatus(TaskLaunchId id, LaunchState state, Map<String, String> attributes) {
+	public TaskStatus(String id, LaunchState state, Map<String, String> attributes) {
 		this.id = id;
 		this.state = state;
 		this.attributes = attributes == null ? Collections.<String, String> emptyMap()
@@ -66,7 +67,7 @@ public class TaskStatus {
 	 * Return the task launch id for the task.
 	 * @return task launch id
 	 */
-	public TaskLaunchId getTaskLaunchId() {
+	public String getTaskLaunchId() {
 		return id;
 	}
 

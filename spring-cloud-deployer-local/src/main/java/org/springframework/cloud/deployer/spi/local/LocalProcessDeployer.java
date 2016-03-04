@@ -40,7 +40,6 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.process.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.process.DeploymentState;
 import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
-import org.springframework.cloud.deployer.spi.process.ProcessDeploymentId;
 import org.springframework.cloud.deployer.spi.process.ProcessStatus;
 import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
@@ -71,12 +70,12 @@ public class LocalProcessDeployer implements ProcessDeployer {
 	@Autowired
 	private LocalDeployerProperties properties = new LocalDeployerProperties();
 
-	private Map<ProcessDeploymentId, List<Instance>> running = new ConcurrentHashMap<>();
+	private Map<String, List<Instance>> running = new ConcurrentHashMap<>();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public ProcessDeploymentId deploy(AppDeploymentRequest request) {
+	public String deploy(AppDeploymentRequest request) {
 		if (this.logPathRoot == null) {
 			try {
 				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
@@ -94,7 +93,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 			throw new IllegalStateException(e);
 		}
 		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
-		ProcessDeploymentId processDeploymentId = new ProcessDeploymentId(group, request.getDefinition().getName());
+		String processDeploymentId = String.format("%s.%s", group, request.getDefinition().getName());
 		List<Instance> processes = new ArrayList<>();
 		running.put(processDeploymentId, processes);
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
@@ -105,8 +104,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 		if (groupDeploymentId == null) {
 			groupDeploymentId = group + "-" + System.currentTimeMillis();
 		}
-		String jmxDomainName = String.format("%s.%s", group, request.getDefinition().getName());
-		args.put(JMX_DEFAULT_DOMAIN_KEY, jmxDomainName);
+		args.put(JMX_DEFAULT_DOMAIN_KEY, processDeploymentId);
 		args.put("endpoints.shutdown.enabled", "true");
 		args.put("endpoints.jmx.unique-names", "true");
 		try {
@@ -116,7 +114,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 				processDeploymentGroupDir.toFile().deleteOnExit();
 			}
 			Path workDir = Files.createDirectory(Paths.get(processDeploymentGroupDir.toFile().getAbsolutePath(),
-					processDeploymentId.toString()));
+					processDeploymentId));
 			if (properties.isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
@@ -147,7 +145,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 	}
 
 	@Override
-	public void undeploy(ProcessDeploymentId id) {
+	public void undeploy(String id) {
 		List<Instance> processes = running.get(id);
 		if (processes != null) {
 			for (Instance instance : processes) {
@@ -160,7 +158,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 	}
 
 	@Override
-	public ProcessStatus status(ProcessDeploymentId id) {
+	public ProcessStatus status(String id) {
 		List<Instance> instances = running.get(id);
 		ProcessStatus.Builder builder = ProcessStatus.of(id);
 		if (instances != null) {
@@ -183,14 +181,14 @@ public class LocalProcessDeployer implements ProcessDeployer {
 
 	@PreDestroy
 	public void shutdown() throws Exception {
-		for (ProcessDeploymentId processDeploymentId : running.keySet()) {
+		for (String processDeploymentId : running.keySet()) {
 			undeploy(processDeploymentId);
 		}
 	}
 
 	private static class Instance implements AppInstanceStatus {
 
-		private final ProcessDeploymentId processDeploymentId;
+		private final String processDeploymentId;
 
 		private final int instanceNumber;
 
@@ -204,7 +202,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 
 		private final URL url;
 
-		private Instance(ProcessDeploymentId processDeploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
+		private Instance(String processDeploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
 			this.processDeploymentId = processDeploymentId;
 			this.instanceNumber = instanceNumber;
 			builder.directory(workDir.toFile());

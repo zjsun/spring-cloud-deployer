@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
-import org.springframework.cloud.deployer.spi.task.TaskLaunchId;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
 import org.springframework.core.io.Resource;
@@ -66,12 +65,12 @@ public class LocalTaskLauncher implements TaskLauncher {
 	@Autowired
 	private LocalDeployerProperties properties = new LocalDeployerProperties();
 
-	private Map<TaskLaunchId, Instance> running = new ConcurrentHashMap<>();
+	private Map<String, Instance> running = new ConcurrentHashMap<>();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
 	@Override
-	public TaskLaunchId launch(AppDeploymentRequest request) {
+	public String launch(AppDeploymentRequest request) {
 		if (this.logPathRoot == null) {
 			try {
 				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
@@ -88,12 +87,12 @@ public class LocalTaskLauncher implements TaskLauncher {
 		catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
-		TaskLaunchId taskLaunchId = new TaskLaunchId(request.getDefinition().getName(), request.getEnvironmentProperties());
+		String taskLaunchId = String.format("%s-%d", request.getDefinition().getName(), System.currentTimeMillis());
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
 		args.putAll(request.getEnvironmentProperties());
-		args.put(JMX_DEFAULT_DOMAIN_KEY, request.getDefinition().getName());
+		args.put(JMX_DEFAULT_DOMAIN_KEY, taskLaunchId);
 		args.put("endpoints.shutdown.enabled", "true");
 		args.put("endpoints.jmx.unique-names", "true");
 		try {
@@ -104,7 +103,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 				dir.toFile().deleteOnExit();
 			}
 			Path workDir = Files.createDirectory(Paths.get(dir.toFile().getAbsolutePath(),
-					taskLaunchId.toString()));
+					taskLaunchId));
 			if (properties.isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
@@ -131,7 +130,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 	}
 
 	@Override
-	public void cancel(TaskLaunchId id) {
+	public void cancel(String id) {
 		Instance instance = running.get(id);
 		if (instance != null) {
 			if (isAlive(instance.process)) {
@@ -142,7 +141,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 	}
 
 	@Override
-	public TaskStatus status(TaskLaunchId id) {
+	public TaskStatus status(String id) {
 		Instance instance = running.get(id);
 		if (instance != null) {
 			return new TaskStatus(id, instance.getState(), instance.getAttributes());
@@ -162,7 +161,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 
 	@PreDestroy
 	public void shutdown() throws Exception {
-		for (TaskLaunchId taskLaunchId : running.keySet()) {
+		for (String taskLaunchId : running.keySet()) {
 			cancel(taskLaunchId);
 		}
 	}
