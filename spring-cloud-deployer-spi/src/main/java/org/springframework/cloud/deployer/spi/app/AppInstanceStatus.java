@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.spi.process;
+package org.springframework.cloud.deployer.spi.app;
 
 import java.util.Map;
 

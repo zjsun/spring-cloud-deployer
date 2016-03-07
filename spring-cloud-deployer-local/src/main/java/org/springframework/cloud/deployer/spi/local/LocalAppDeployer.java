@@ -36,28 +36,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
+import org.springframework.cloud.deployer.spi.app.AppStatus;
+import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.process.AppInstanceStatus;
-import org.springframework.cloud.deployer.spi.process.DeploymentState;
-import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
-import org.springframework.cloud.deployer.spi.process.ProcessStatus;
 import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * A {@link ProcessDeployer} implementation that spins off a new JVM process per app instance.
+ * An {@link AppDeployer} implementation that spins off a new JVM process per app instance.
  *
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class LocalProcessDeployer implements ProcessDeployer {
+public class LocalAppDeployer implements AppDeployer {
 
 	private Path logPathRoot;
 
-	private static final Logger logger = LoggerFactory.getLogger(LocalProcessDeployer.class);
+	private static final Logger logger = LoggerFactory.getLogger(LocalAppDeployer.class);
 
 	private static final String SERVER_PORT_KEY = "server.port";
 
@@ -93,9 +93,9 @@ public class LocalProcessDeployer implements ProcessDeployer {
 			throw new IllegalStateException(e);
 		}
 		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
-		String processDeploymentId = String.format("%s.%s", group, request.getDefinition().getName());
+		String deploymentId = String.format("%s.%s", group, request.getDefinition().getName());
 		List<Instance> processes = new ArrayList<>();
-		running.put(processDeploymentId, processes);
+		running.put(deploymentId, processes);
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
@@ -104,17 +104,17 @@ public class LocalProcessDeployer implements ProcessDeployer {
 		if (groupDeploymentId == null) {
 			groupDeploymentId = group + "-" + System.currentTimeMillis();
 		}
-		args.put(JMX_DEFAULT_DOMAIN_KEY, processDeploymentId);
+		args.put(JMX_DEFAULT_DOMAIN_KEY, deploymentId);
 		args.put("endpoints.shutdown.enabled", "true");
 		args.put("endpoints.jmx.unique-names", "true");
 		try {
-			Path processDeploymentGroupDir = Paths.get(logPathRoot.toFile().getAbsolutePath(), groupDeploymentId);
-			if (!Files.exists(processDeploymentGroupDir)) {
-				Files.createDirectory(processDeploymentGroupDir);
-				processDeploymentGroupDir.toFile().deleteOnExit();
+			Path deploymentGroupDir = Paths.get(logPathRoot.toFile().getAbsolutePath(), groupDeploymentId);
+			if (!Files.exists(deploymentGroupDir)) {
+				Files.createDirectory(deploymentGroupDir);
+				deploymentGroupDir.toFile().deleteOnExit();
 			}
-			Path workDir = Files.createDirectory(Paths.get(processDeploymentGroupDir.toFile().getAbsolutePath(),
-					processDeploymentId));
+			Path workDir = Files
+					.createDirectory(Paths.get(deploymentGroupDir.toFile().getAbsolutePath(), deploymentId));
 			if (properties.isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
@@ -129,19 +129,19 @@ public class LocalProcessDeployer implements ProcessDeployer {
 				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
 				builder.environment().clear();
 				builder.environment().putAll(args);
-				Instance instance = new Instance(processDeploymentId, i, builder, workDir, port);
+				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
 				if (properties.isDeleteFilesOnExit()) {
 					instance.stdout.deleteOnExit();
 					instance.stderr.deleteOnExit();
 				}
-				logger.info("deploying app {} instance {}\n   Logs will be in {}", processDeploymentId, i, workDir);
+				logger.info("deploying app {} instance {}\n   Logs will be in {}", deploymentId, i, workDir);
 			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException("Exception trying to deploy " + request, e);
 		}
-		return processDeploymentId;
+		return deploymentId;
 	}
 
 	@Override
@@ -158,9 +158,9 @@ public class LocalProcessDeployer implements ProcessDeployer {
 	}
 
 	@Override
-	public ProcessStatus status(String id) {
+	public AppStatus status(String id) {
 		List<Instance> instances = running.get(id);
-		ProcessStatus.Builder builder = ProcessStatus.of(id);
+		AppStatus.Builder builder = AppStatus.of(id);
 		if (instances != null) {
 			for (Instance instance : instances) {
 				builder.with(instance);
@@ -181,14 +181,14 @@ public class LocalProcessDeployer implements ProcessDeployer {
 
 	@PreDestroy
 	public void shutdown() throws Exception {
-		for (String processDeploymentId : running.keySet()) {
-			undeploy(processDeploymentId);
+		for (String deploymentId : running.keySet()) {
+			undeploy(deploymentId);
 		}
 	}
 
 	private static class Instance implements AppInstanceStatus {
 
-		private final String processDeploymentId;
+		private final String deploymentId;
 
 		private final int instanceNumber;
 
@@ -202,8 +202,8 @@ public class LocalProcessDeployer implements ProcessDeployer {
 
 		private final URL url;
 
-		private Instance(String processDeploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
-			this.processDeploymentId = processDeploymentId;
+		private Instance(String deploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
+			this.deploymentId = deploymentId;
 			this.instanceNumber = instanceNumber;
 			builder.directory(workDir.toFile());
 			String workDirPath = workDir.toFile().getAbsolutePath();
@@ -219,7 +219,7 @@ public class LocalProcessDeployer implements ProcessDeployer {
 
 		@Override
 		public String getId() {
-			return processDeploymentId + "-" + instanceNumber;
+			return deploymentId + "-" + instanceNumber;
 		}
 
 		@Override

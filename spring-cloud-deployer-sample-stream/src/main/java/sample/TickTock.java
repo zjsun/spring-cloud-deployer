@@ -21,10 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.local.LocalProcessDeployer;
-import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
+import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
 
 /**
  * @author Mark Fisher
@@ -32,7 +32,7 @@ import org.springframework.cloud.deployer.spi.process.ProcessDeployer;
 public class TickTock {
 
 	public static void main(String[] args) throws InterruptedException {
-		LocalProcessDeployer deployer = new LocalProcessDeployer();
+		LocalAppDeployer deployer = new LocalAppDeployer();
 		String logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
 		String timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
 		for (int i = 0; i < 12; i++) {
@@ -64,7 +64,7 @@ public class TickTock {
 			properties.put("spring.cloud.stream.bindings.input.group", "default");
 		}
 		AppDefinition definition = new AppDefinition(app, properties);
-		Map<String, String> environmentProperties = Collections.singletonMap(ProcessDeployer.GROUP_PROPERTY_KEY, stream);
+		Map<String, String> environmentProperties = Collections.singletonMap(AppDeployer.GROUP_PROPERTY_KEY, stream);
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, environmentProperties);
 		return request;
 	}
