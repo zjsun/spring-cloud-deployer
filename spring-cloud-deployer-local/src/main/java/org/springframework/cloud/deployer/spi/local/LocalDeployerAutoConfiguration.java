@@ -17,7 +17,6 @@
 package org.springframework.cloud.deployer.spi.local;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
  * @author Mark Fisher
  */
 @Configuration
-@EnableConfigurationProperties(LocalDeployerProperties.class)
 public class LocalDeployerAutoConfiguration {
 
 	@Bean
