@@ -87,7 +87,7 @@ public class LocalTaskLauncher implements TaskLauncher {
 		catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
-		String taskLaunchId = String.format("%s-%d", request.getDefinition().getName(), System.currentTimeMillis());
+		String taskLaunchId = request.getDefinition().getName();
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
