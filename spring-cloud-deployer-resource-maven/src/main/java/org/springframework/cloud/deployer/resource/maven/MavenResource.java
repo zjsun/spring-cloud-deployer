@@ -57,9 +57,6 @@ import org.springframework.util.StringUtils;
  */
 public class MavenResource extends AbstractResource {
 
-	private static final File LOCAL_REPO = new File(System.getProperty("user.home")
-			+ File.separator + ".m2" + File.separator + "repository");
-
 	/**
 	 * The default extension for the artifact.
 	 */
@@ -96,7 +93,7 @@ public class MavenResource extends AbstractResource {
 	 */
 	private final String version;
 
-	private final MavenArtifactResolver resolver = new MavenArtifactResolver(LOCAL_REPO, null);
+	private final MavenArtifactResolver resolver;
 
 	/**
 	 * Construct a {@code MavenResource} object.
@@ -106,17 +103,21 @@ public class MavenResource extends AbstractResource {
 	 * @param extension the file extension
 	 * @param classifier artifact classifier - can be null
 	 * @param version artifact version
+	 * @param properties Maven configuration properties
 	 */
-	private MavenResource(String groupId, String artifactId, String extension, String classifier, String version) {
-		Assert.hasText(groupId, "'groupId' cannot be blank");
-		Assert.hasText(artifactId, "'artifactId' cannot be blank");
-		Assert.hasText(extension, "'extension' cannot be blank");
-		Assert.hasText(version, "'version' cannot be blank");
+	private MavenResource(String groupId, String artifactId, String extension, String classifier,
+			String version, MavenProperties properties) {
+		Assert.hasText(groupId, "groupId must not be blank");
+		Assert.hasText(artifactId, "artifactId must not be blank");
+		Assert.hasText(extension, "extension must not be blank");
+		Assert.hasText(version, "version must not be blank");
+		Assert.notNull(properties, "MavenProperties must not be null");
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.extension = extension;
 		this.classifier = classifier == null ? EMPTY_CLASSIFIER : classifier;
 		this.version = version;
+		this.resolver = new MavenArtifactResolver(properties);
 	}
 
 	/**
@@ -216,14 +217,16 @@ public class MavenResource extends AbstractResource {
 				String.format("%s:%s:%s:%s", groupId, artifactId, extension, version);
 	}
 
+
 	/**
-	 * Parse coordinates given as a colon delimited string.
+	 * Create a {@link MavenResource} for the provided coordinates and properties.
 	 *
 	 * @param coordinates coordinates encoded as <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>,
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
+	 * @param properties the properties for the repositories, proxies, and authentication
 	 * @return the instance
 	 */
-	public static MavenResource parse(String coordinates) {
+	public static MavenResource parse(String coordinates, MavenProperties properties) {
 		Assert.hasText(coordinates);
 		Pattern p = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
 		Matcher m = p.matcher(coordinates);
@@ -234,7 +237,7 @@ public class MavenResource extends AbstractResource {
 		String extension = StringUtils.hasLength(m.group(4)) ? m.group(4) : DEFAULT_EXTENSION;
 		String classifier = StringUtils.hasLength(m.group(6)) ? m.group(6) : EMPTY_CLASSIFIER;
 		String version = m.group(7);
-		return new MavenResource(groupId, artifactId, extension, classifier, version);
+		return new MavenResource(groupId, artifactId, extension, classifier, version, properties);
 	}
 
 	public static class Builder {
@@ -249,33 +252,43 @@ public class MavenResource extends AbstractResource {
 
 		private String version;
 
-		public Builder setGroupId(String groupId) {
+		private final MavenProperties properties;
+
+		public Builder() {
+			this(null);
+		}
+
+		public Builder(MavenProperties properties) {
+			this.properties = (properties != null) ? properties : new MavenProperties();
+		}
+
+		public Builder groupId(String groupId) {
 			this.groupId = groupId;
 			return this;
 		}
 
-		public Builder setArtifactId(String artifactId) {
+		public Builder artifactId(String artifactId) {
 			this.artifactId = artifactId;
 			return this;
 		}
 
-		public Builder setExtension(String extension) {
+		public Builder extension(String extension) {
 			this.extension = extension;
 			return this;
 		}
 
-		public Builder setClassifier(String classifier) {
+		public Builder classifier(String classifier) {
 			this.classifier = classifier;
 			return this;
 		}
 
-		public Builder setVersion(String version) {
+		public Builder version(String version) {
 			this.version = version;
 			return this;
 		}
 
 		public MavenResource build() {
-			return new MavenResource(groupId, artifactId, extension, classifier, version);
+			return new MavenResource(groupId, artifactId, extension, classifier, version, properties);
 		}
 	}
 }

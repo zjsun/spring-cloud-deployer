@@ -48,11 +48,11 @@ public class TickTock {
 
 	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
 		MavenResource resource = new MavenResource.Builder()
-				.setArtifactId(app)
-				.setGroupId("org.springframework.cloud.stream.module")
-				.setVersion("1.0.0.BUILD-SNAPSHOT")
-				.setExtension("jar")
-				.setClassifier("exec")
+				.artifactId(app)
+				.groupId("org.springframework.cloud.stream.module")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
 				.build();
 		Map<String, String> properties = new HashMap<>();
 		properties.put("server.port", "0");

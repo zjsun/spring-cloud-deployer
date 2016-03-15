@@ -31,7 +31,11 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.Authentication;
+import org.eclipse.aether.repository.AuthenticationContext;
+import org.eclipse.aether.repository.AuthenticationDigest;
 import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -41,10 +45,12 @@ import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.repository.DefaultProxySelector;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -55,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Ilayaperumal Gopinathan
  */
 class MavenArtifactResolver {
 
@@ -62,71 +69,96 @@ class MavenArtifactResolver {
 
 	private static final String DEFAULT_CONTENT_TYPE = "default";
 
-	private final File localRepository;
-
-	private final List<RemoteRepository> remoteRepositories;
-
 	private final RepositorySystem repositorySystem;
 
-	private volatile boolean offline = false;
+	private final MavenProperties properties;
+
+	private final List<RemoteRepository> remoteRepositories = new LinkedList<>();
+
+	private final Authentication authentication;
 
 	/**
-	 * Create an instance specifying the locations of the local and remote repositories.
-	 * @param localRepository the root path of the local maven repository
-	 * @param remoteRepositories a Map containing pairs of (repository ID,repository URL). This
-	 * may be null or empty if the local repository is off line.
+	 * Create an instance using the provided properties.
+	 *
+	 * @param properties the properties for the maven repositories, proxies, and authentication
 	 */
-	MavenArtifactResolver(File localRepository, Map<String, String> remoteRepositories) {
-		Assert.notNull(localRepository, "Local repository path cannot be null");
+	public MavenArtifactResolver(final MavenProperties properties) {
+		Assert.notNull(properties.getLocalRepository(), "Local repository path cannot be null");
 		if (log.isDebugEnabled()) {
-			log.debug("Local repository: " + localRepository);
-			if (!CollectionUtils.isEmpty(remoteRepositories)) {
+			log.debug("Local repository: " + properties.getLocalRepository());
+			if (!ObjectUtils.isEmpty(properties.getRemoteRepositories())) {
 				// just listing the values, ids are simply informative
-				log.debug("Remote repositories: " + StringUtils.collectionToCommaDelimitedString(remoteRepositories.values()));
+				log.debug("Remote repositories: " + StringUtils.arrayToCommaDelimitedString(
+						properties.getRemoteRepositories()));
 			}
 		}
+		this.properties = properties;
+		if (isProxyEnabled() && proxyHasCredentials()) {
+			this.authentication = new Authentication() {
+				@Override
+				public void fill(AuthenticationContext context, String key, Map<String, String> data) {
+					context.put(AuthenticationContext.USERNAME, properties.getProxy().getAuth().getUsername());
+					context.put(AuthenticationContext.PASSWORD, properties.getProxy().getAuth().getPassword());
+				}
+
+				@Override
+				public void digest(AuthenticationDigest digest) {
+					digest.update(AuthenticationContext.USERNAME, properties.getProxy().getAuth().getUsername(),
+							AuthenticationContext.PASSWORD, properties.getProxy().getAuth().getPassword());
+				}
+			};
+		}
+		else {
+			this.authentication = null;
+		}
+		File localRepository = new File(properties.getLocalRepository());
 		if (!localRepository.exists()) {
 			Assert.isTrue(localRepository.mkdirs(),
 					"Unable to create directory for local repository: " + localRepository);
 		}
-		this.localRepository = localRepository;
-		this.remoteRepositories = new LinkedList<>();
-		if (!CollectionUtils.isEmpty(remoteRepositories)) {
-			for (Map.Entry<String, String> remoteRepo : remoteRepositories.entrySet()) {
-				RemoteRepository remoteRepository = new RemoteRepository.Builder(remoteRepo.getKey(),
-						DEFAULT_CONTENT_TYPE, remoteRepo.getValue()).build();
-				this.remoteRepositories.add(remoteRepository);
+		if (!ObjectUtils.isEmpty(properties.getRemoteRepositories())) {
+			int i = 1;
+			for (String remoteRepository : properties.getRemoteRepositories()) {
+				RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
+						String.format("repository%d", i++), DEFAULT_CONTENT_TYPE, remoteRepository);
+				if (isProxyEnabled()) {
+					if (this.authentication != null) {
+						remoteRepositoryBuilder.setProxy(new Proxy(properties.getProxy().getProtocol(),
+								properties.getProxy().getHost(), properties.getProxy().getPort(), authentication));
+					}
+					else {
+						// if proxy does not require authentication
+						remoteRepositoryBuilder.setProxy(new Proxy(properties.getProxy().getProtocol(),
+								properties.getProxy().getHost(), properties.getProxy().getPort()));
+					}
+				}
+				this.remoteRepositories.add(remoteRepositoryBuilder.build());
 			}
 		}
-		repositorySystem = newRepositorySystem();
-	}
-
-	public void setOffline(boolean offline) {
-		this.offline = offline;
+		this.repositorySystem = newRepositorySystem();
 	}
 
 	/**
-	 * Resolve an artifact and return its location in the local repository. Aether performs the normal
-	 * Maven resolution process ensuring that the latest update is cached to the local repository.
-	 * @param coordinates the Maven coordinates of the artifact
-	 * @return a {@link FileSystemResource} representing the resolved artifact in the local repository
-	 * @throws RuntimeException if the artifact does not exist or the resolution fails
+	 * Check if the proxy settings are provided.
+	 *
+	 * @return boolean true if the proxy settings are provided.
 	 */
-	Resource resolve(MavenResource resource) {
-		Assert.notNull(resource, "MavenResource cannot be null");
-		validateCoordinates(resource);
-		Artifact rootArtifact = toArtifact(resource);
-		RepositorySystemSession session = newRepositorySystemSession(repositorySystem,
-				localRepository.getAbsolutePath());
-		ArtifactResult resolvedArtifact;
-		try {
-			resolvedArtifact = repositorySystem.resolveArtifact(session,
-					new ArtifactRequest(rootArtifact, remoteRepositories, JavaScopes.RUNTIME));
-		}
-		catch (ArtifactResolutionException e) {
-			throw new RuntimeException(e);
-		}
-		return toResource(resolvedArtifact);
+	private boolean isProxyEnabled() {
+		return (this.properties.getProxy() != null &&
+				this.properties.getProxy().getHost() != null &&
+				this.properties.getProxy().getPort() > 0);
+	}
+
+	/**
+	 * Check if the proxy setting has username/password set.
+	 *
+	 * @return boolean true if both the username/password are set
+	 */
+	private boolean proxyHasCredentials() {
+		return (this.properties.getProxy() != null &&
+				this.properties.getProxy().getAuth() != null &&
+				this.properties.getProxy().getAuth().getUsername() != null &&
+				this.properties.getProxy().getAuth().getPassword() != null);
 	}
 
 	/*
@@ -136,7 +168,15 @@ class MavenArtifactResolver {
 		DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 		LocalRepository localRepo = new LocalRepository(localRepoPath);
 		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
-		session.setOffline(this.offline);
+		session.setOffline(this.properties.isOffline());
+		if (isProxyEnabled()) {
+			DefaultProxySelector proxySelector = new DefaultProxySelector();
+			Proxy proxy = new Proxy(properties.getProxy().getProtocol(), properties.getProxy().getHost(),
+					properties.getProxy().getPort(),
+					authentication);
+			proxySelector.add(proxy, properties.getProxy().getNonProxyHosts());
+			session.setProxySelector(proxySelector);
+		}
 		return session;
 	}
 
@@ -159,22 +199,47 @@ class MavenArtifactResolver {
 		return locator.getService(RepositorySystem.class);
 	}
 
-	private void validateCoordinates(MavenResource resource) {
-		Assert.hasText(resource.getGroupId(), "'groupId' cannot be blank.");
-		Assert.hasText(resource.getArtifactId(), "'artifactId' cannot be blank.");
-		Assert.hasText(resource.getExtension(), "'extension' cannot be blank.");
-		Assert.hasText(resource.getVersion(), "'version' cannot be blank.");
+	/**
+	 * Resolve an artifact and return its location in the local repository. Aether performs the normal
+	 * Maven resolution process ensuring that the latest update is cached to the local repository.
+	 * @param resource the {@link MavenResource} representing the artifact
+	 * @return a {@link FileSystemResource} representing the resolved artifact in the local repository
+	 * @throws IllegalStateException if the artifact does not exist or the resolution fails
+	 */
+	Resource resolve(MavenResource resource) {
+		Assert.notNull(resource, "MavenResource must not be null");
+		validateCoordinates(resource);
+		Artifact rootArtifact = toArtifact(resource);
+		RepositorySystemSession session = newRepositorySystemSession(repositorySystem,
+				properties.getLocalRepository());
+		ArtifactResult resolvedArtifact;
+		try {
+			resolvedArtifact = repositorySystem.resolveArtifact(session,
+					new ArtifactRequest(rootArtifact, remoteRepositories, JavaScopes.RUNTIME));
+		}
+		catch (ArtifactResolutionException e) {
+			throw new IllegalStateException(
+					String.format("failed to resolve MavenResource: %s", toString()), e);
+		}
+		return toResource(resolvedArtifact);
 	}
 
-	private FileSystemResource toResource(ArtifactResult resolvedArtifact) {
+	private void validateCoordinates(MavenResource resource) {
+		Assert.hasText(resource.getGroupId(), "groupId must not be blank.");
+		Assert.hasText(resource.getArtifactId(), "artifactId must not be blank.");
+		Assert.hasText(resource.getExtension(), "extension must not be blank.");
+		Assert.hasText(resource.getVersion(), "version must not be blank.");
+	}
+
+	public FileSystemResource toResource(ArtifactResult resolvedArtifact) {
 		return new FileSystemResource(resolvedArtifact.getArtifact().getFile());
 	}
 
-	private Artifact toArtifact(MavenResource coordinates) {
-		return new DefaultArtifact(coordinates.getGroupId(),
-				coordinates.getArtifactId(),
-				coordinates.getClassifier() != null ? coordinates.getClassifier() : "",
-				coordinates.getExtension(),
-				coordinates.getVersion());
+	private Artifact toArtifact(MavenResource resource) {
+		return new DefaultArtifact(resource.getGroupId(),
+				resource.getArtifactId(),
+				resource.getClassifier() != null ? resource.getClassifier() : "",
+				resource.getExtension(),
+				resource.getVersion());
 	}
 }

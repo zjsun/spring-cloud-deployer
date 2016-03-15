@@ -29,11 +29,11 @@ public class MavenResourceTests {
 	@Test
 	public void testMavenResourceFilename() {
 		MavenResource resource = new MavenResource.Builder()
-				.setArtifactId("timestamp-task")
-				.setGroupId("org.springframework.cloud.task.module")
-				.setVersion("1.0.0.BUILD-SNAPSHOT")
-				.setExtension("jar")
-				.setClassifier("exec")
+				.artifactId("timestamp-task")
+				.groupId("org.springframework.cloud.task.module")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
 				.build();
 		assertNotNull("getFilename() returned null", resource.getFilename());
 		assertEquals("getFilename() doesn't match the expected filename",
