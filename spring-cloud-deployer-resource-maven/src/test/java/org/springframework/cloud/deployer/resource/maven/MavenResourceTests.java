@@ -19,15 +19,21 @@ package org.springframework.cloud.deployer.resource.maven;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
+
 import org.junit.Test;
 
 /**
+ * Tests for {@link MavenResource}
+ *
  * @author Venil Noronha
+ * @author Janne Valkealahti
+ * @author Mark Fisher
  */
 public class MavenResourceTests {
 
 	@Test
-	public void testMavenResourceFilename() {
+	public void mavenResourceFilename() {
 		MavenResource resource = new MavenResource.Builder()
 				.artifactId("timestamp-task")
 				.groupId("org.springframework.cloud.task.module")
@@ -38,6 +44,97 @@ public class MavenResourceTests {
 		assertNotNull("getFilename() returned null", resource.getFilename());
 		assertEquals("getFilename() doesn't match the expected filename",
 				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+	}
+
+	@Test
+	public void resourceExists() {
+		MavenResource resource = new MavenResource.Builder()
+				.artifactId("timestamp-task")
+				.groupId("org.springframework.cloud.task.module")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
+				.build();
+		assertEquals(resource.exists(), true);
+	}
+
+	@Test
+	public void resourceDoesNotExist() {
+		MavenResource resource = new MavenResource.Builder()
+				.artifactId("doesnotexist")
+				.groupId("org.springframework.cloud.task.module")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
+				.build();
+		assertEquals(resource.exists(), false);
+	}
+
+	@Test
+	public void coordinatesParsed() {
+		MavenResource resource = MavenResource.parse("org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT");
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+		resource = MavenResource.parse("org.springframework.cloud.task.module:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT");
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
+	}
+
+	@Test
+	public void mavenResourceRetrievedFromNonDefaultRemoteRepository() throws Exception {
+		String coordinates = "org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT";
+		MavenProperties properties = new MavenProperties();
+		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test1";
+		new File(tempLocalRepo).deleteOnExit();
+		properties.setLocalRepository(tempLocalRepo);
+		properties.setRemoteRepositories(new String[] {"https://repo.spring.io/libs-snapshot-local"});
+		MavenResource resource = MavenResource.parse(coordinates, properties);
+		assertEquals("getFilename() doesn't match the expected filename",
+				"timestamp-task-1.0.0.BUILD-SNAPSHOT-exec.jar", resource.getFilename());
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void localResolutionFailsIfNotCached() throws Exception {
+		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test2";
+		new File(tempLocalRepo).deleteOnExit();
+		MavenProperties properties = new MavenProperties();
+		properties.setLocalRepository(tempLocalRepo);
+		properties.setRemoteRepositories(new String[0]);
+		properties.setOffline(true);
+		MavenResource resource = new MavenResource.Builder(properties)
+				.artifactId("timestamp-task")
+				.groupId("org.springframework.cloud.task.module")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
+				.build();
+		resource.getFile();
+	}
+
+	@Test
+	public void localResolutionSucceedsIfCached() throws Exception {
+		String coordinates = "org.springframework.cloud.task.module:timestamp-task:jar:exec:1.0.0.BUILD-SNAPSHOT";
+		MavenProperties properties1 = new MavenProperties();
+		String tempLocalRepo = System.getProperty("java.io.tmpdir") + File.separator + ".m2-test3";
+		new File(tempLocalRepo).deleteOnExit();
+		properties1.setLocalRepository(tempLocalRepo);
+		properties1.setRemoteRepositories(new String[] {"https://repo.spring.io/libs-snapshot-local"});
+		MavenResource resource = MavenResource.parse(coordinates, properties1);
+		resource.getFile();
+
+		// no remotes; should not fail anymore
+		MavenProperties properties2 = new MavenProperties();
+		properties2.setLocalRepository(tempLocalRepo);
+		properties2.setRemoteRepositories(new String[0]);
+		properties2.setOffline(true);
+		resource = new MavenResource.Builder(properties2)
+				.artifactId("timestamp-task")
+				.groupId("org.springframework.cloud.task.module")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
+				.build();
+		resource.getFile();
 	}
 	
 }

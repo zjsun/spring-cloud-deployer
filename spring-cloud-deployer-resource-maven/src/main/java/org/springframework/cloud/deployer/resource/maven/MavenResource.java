@@ -111,13 +111,12 @@ public class MavenResource extends AbstractResource {
 		Assert.hasText(artifactId, "artifactId must not be blank");
 		Assert.hasText(extension, "extension must not be blank");
 		Assert.hasText(version, "version must not be blank");
-		Assert.notNull(properties, "MavenProperties must not be null");
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.extension = extension;
 		this.classifier = classifier == null ? EMPTY_CLASSIFIER : classifier;
 		this.version = version;
-		this.resolver = new MavenArtifactResolver(properties);
+		this.resolver = new MavenArtifactResolver(properties != null ? properties : new MavenProperties());
 	}
 
 	/**
@@ -178,6 +177,17 @@ public class MavenResource extends AbstractResource {
 	}
 
 	@Override
+	public boolean exists() {
+		try {
+			return super.exists();
+		}
+		catch (Exception e) {
+			// Resource.exists() has no throws clause, so return false
+			return false;
+		}
+	}
+
+	@Override
 	public final boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -217,17 +227,27 @@ public class MavenResource extends AbstractResource {
 				String.format("%s:%s:%s:%s", groupId, artifactId, extension, version);
 	}
 
-
+	/**
+	 * Create a {@link MavenResource} for the provided coordinates and default properties.
+	 *
+	 * @param coordinates coordinates encoded as <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>,
+	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
+	 * @return the {@link MavenResource}
+	 */
+	public static MavenResource parse(String coordinates) {
+		return parse(coordinates, null);
+	}
+			
 	/**
 	 * Create a {@link MavenResource} for the provided coordinates and properties.
 	 *
 	 * @param coordinates coordinates encoded as <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>,
 	 * conforming to the <a href="http://www.eclipse.org/aether">Aether</a> convention.
 	 * @param properties the properties for the repositories, proxies, and authentication
-	 * @return the instance
+	 * @return the {@link MavenResource}
 	 */
 	public static MavenResource parse(String coordinates, MavenProperties properties) {
-		Assert.hasText(coordinates);
+		Assert.hasText(coordinates, "coordinates are required");
 		Pattern p = Pattern.compile("([^: ]+):([^: ]+)(:([^: ]*)(:([^: ]+))?)?:([^: ]+)");
 		Matcher m = p.matcher(coordinates);
 		Assert.isTrue(m.matches(), "Bad artifact coordinates " + coordinates
@@ -259,7 +279,7 @@ public class MavenResource extends AbstractResource {
 		}
 
 		public Builder(MavenProperties properties) {
-			this.properties = (properties != null) ? properties : new MavenProperties();
+			this.properties = properties;
 		}
 
 		public Builder groupId(String groupId) {

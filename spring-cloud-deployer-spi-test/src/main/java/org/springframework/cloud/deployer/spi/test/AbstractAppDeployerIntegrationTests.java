@@ -200,11 +200,11 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	 */
 	protected Resource integrationTestProcessor() {
 		return new MavenResource.Builder()
-				.setGroupId("org.springframework.cloud.stream.module")
-				.setArtifactId("integration-test-processor")
-				.setVersion("1.0.0.BUILD-SNAPSHOT")
-				.setExtension("jar")
-				.setClassifier("exec")
+				.groupId("org.springframework.cloud.stream.module")
+				.artifactId("integration-test-processor")
+				.version("1.0.0.BUILD-SNAPSHOT")
+				.extension("jar")
+				.classifier("exec")
 				.build();
 	}
 
