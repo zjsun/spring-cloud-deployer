@@ -24,7 +24,6 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -36,11 +35,11 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -84,7 +83,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	@Test
 	public void testSimpleDeployment() {
 		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = mavenResource("org.springframework.cloud.stream.module", "time-source", "jar", "exec", "1.0.0.BUILD-SNAPSHOT");
+		Resource resource = integrationTestProcessor();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		String deploymentId = appDeployer().deploy(request);
@@ -105,7 +104,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	@Test
 	public void testRedeploy() {
 		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = mavenResource("org.springframework.cloud.stream.module", "time-source","jar","exec","1.0.0.BUILD-SNAPSHOT");
+		Resource resource = integrationTestProcessor();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		String deploymentId = appDeployer().deploy(request);
@@ -140,7 +139,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("initDelay", "" + 1000 * 60 * 60); // 1hr
 		AppDefinition definition = new AppDefinition(randomName(), properties);
-		Resource resource = mavenResource("org.springframework.cloud.stream.module", "integration-test-processor","jar","exec","1.0.0.BUILD-SNAPSHOT");
+		Resource resource = integrationTestProcessor();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
 		String deploymentId = appDeployer().deploy(request);
@@ -160,7 +159,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("killDelay", "0");
 		AppDefinition definition = new AppDefinition(randomName(), properties);
-		Resource resource = mavenResource("org.springframework.cloud.stream.module", "integration-test-processor","jar","exec","1.0.0.BUILD-SNAPSHOT");
+		Resource resource = integrationTestProcessor();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
 		String deploymentId = appDeployer().deploy(request);
@@ -194,19 +193,20 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		return new Timeout(20, 5000);
 	}
 
-	private Resource mavenResource(String groupId, String artifactId, String ext, String classifier, String version) {
-		// TODO: actually resolve using Aether,
-		// or use integration-test-processor in every test and bring at build time in src/test/resources?
-		File localRepository = new File(System.getProperty("user.home") + File.separator + ".m2" +
-				File.separator + "repository");
-		String path = groupId.replace(".", File.separator) + File.separator
-				+ artifactId + File.separator + version + File.separator
-				+ artifactId + "-" + version + "-" + classifier + "." + ext;
-		File jarFile = new File(localRepository, path);
-		return new FileSystemResource(jarFile);
+	/**
+	 * Return a resource corresponding to the integration-test-processor suitable for the target runtime.
+	 *
+	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
+	 */
+	protected Resource integrationTestProcessor() {
+		return new MavenResource.Builder()
+				.setGroupId("org.springframework.cloud.stream.module")
+				.setArtifactId("integration-test-processor")
+				.setVersion("1.0.0.BUILD-SNAPSHOT")
+				.setExtension("jar")
+				.setClassifier("exec")
+				.build();
 	}
-
-
 
 	/**
 	 * Represents a timeout for querying status, with repetitive queries until a certain number have been made.
