@@ -78,16 +78,25 @@ public class LocalAppDeployer implements AppDeployer {
 		}
 	}
 
-	@Autowired
-	private LocalDeployerProperties properties = new LocalDeployerProperties();
+	private final LocalDeployerProperties properties;
 
-	private Map<String, List<Instance>> running = new ConcurrentHashMap<>();
+	private final Map<String, List<Instance>> running = new ConcurrentHashMap<>();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	@PostConstruct
-	public void setup() throws IOException {
-		this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
+	public LocalAppDeployer() {
+		this(new LocalDeployerProperties());
+	}
+
+	@Autowired
+	public LocalAppDeployer(LocalDeployerProperties properties) {
+		this.properties = properties;
+		try {
+			this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Could not create workdir root: " + properties.getWorkingDirectoriesRoot(), e);
+		}
 	}
 
 	@Override
