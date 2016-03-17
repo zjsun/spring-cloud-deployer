@@ -26,10 +26,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
@@ -48,7 +51,6 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * An {@link AppDeployer} implementation that spins off a new JVM process per app instance.
- *
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Mark Fisher
@@ -67,6 +69,15 @@ public class LocalAppDeployer implements AppDeployer {
 
 	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
 
+	private static final Set<String> ENV_VARS_TO_INHERIT = new HashSet<>();
+
+	static {
+		// TMP controls the location of java.io.tmpDir on Windows
+		if (System.getProperty("os.name").startsWith("Windows")) {
+			ENV_VARS_TO_INHERIT.add("TMP");
+		}
+	}
+
 	@Autowired
 	private LocalDeployerProperties properties = new LocalDeployerProperties();
 
@@ -74,16 +85,13 @@ public class LocalAppDeployer implements AppDeployer {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
+	@PostConstruct
+	public void setup() throws IOException {
+		this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
+	}
+
 	@Override
 	public String deploy(AppDeploymentRequest request) {
-		if (this.logPathRoot == null) {
-			try {
-				this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
-			}
-			catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}
 		Resource resource = request.getResource();
 		String jarPath;
 		try {
@@ -94,6 +102,9 @@ public class LocalAppDeployer implements AppDeployer {
 		}
 		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
 		String deploymentId = String.format("%s.%s", group, request.getDefinition().getName());
+		if (running.containsKey(deploymentId)) {
+			throw new IllegalStateException(String.format("App for '%s' is already running", deploymentId));
+		}
 		List<Instance> processes = new ArrayList<>();
 		running.put(deploymentId, processes);
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
@@ -127,7 +138,7 @@ public class LocalAppDeployer implements AppDeployer {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
 				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
-				builder.environment().clear();
+				builder.environment().keySet().retainAll(ENV_VARS_TO_INHERIT);
 				builder.environment().putAll(args);
 				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
@@ -258,7 +269,6 @@ public class LocalAppDeployer implements AppDeployer {
 	/**
 	 * Returns the process exit value. We explicitly use Integer instead of int
 	 * to indicate that if {@code NULL} is returned, the process is still running.
-	 *
 	 * @param process the process
 	 * @return the process exit value or {@code NULL} if process is still alive
 	 */
