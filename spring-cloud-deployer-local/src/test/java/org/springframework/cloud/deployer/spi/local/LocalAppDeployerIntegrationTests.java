@@ -46,8 +46,8 @@ public class LocalAppDeployerIntegrationTests extends AbstractAppDeployerIntegra
 	public static class Config {
 
 		@Bean
-		public AppDeployer appDeployer() {
-			return new LocalAppDeployer();
+		public AppDeployer appDeployer(LocalDeployerProperties properties) {
+			return new LocalAppDeployer(properties);
 		}
 	}
 

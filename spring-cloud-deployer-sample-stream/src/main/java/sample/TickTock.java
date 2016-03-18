@@ -25,6 +25,7 @@ import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
+import org.springframework.cloud.deployer.spi.local.LocalDeployerProperties;
 
 /**
  * @author Mark Fisher
@@ -32,7 +33,7 @@ import org.springframework.cloud.deployer.spi.local.LocalAppDeployer;
 public class TickTock {
 
 	public static void main(String[] args) throws InterruptedException {
-		LocalAppDeployer deployer = new LocalAppDeployer();
+		LocalAppDeployer deployer = new LocalAppDeployer(new LocalDeployerProperties());
 		String logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
 		String timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
 		for (int i = 0; i < 12; i++) {

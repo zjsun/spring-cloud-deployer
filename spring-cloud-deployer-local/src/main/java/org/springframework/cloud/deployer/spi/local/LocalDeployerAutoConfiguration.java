@@ -37,13 +37,13 @@ public class LocalDeployerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(AppDeployer.class)
-	public AppDeployer appDeployer() {
-		return new LocalAppDeployer();
+	public AppDeployer appDeployer(LocalDeployerProperties properties) {
+		return new LocalAppDeployer(properties);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(TaskLauncher.class)
-	public TaskLauncher taskLauncher() {
-		return new LocalTaskLauncher();
+	public TaskLauncher taskLauncher(LocalDeployerProperties properties) {
+		return new LocalTaskLauncher(properties);
 	}
 }

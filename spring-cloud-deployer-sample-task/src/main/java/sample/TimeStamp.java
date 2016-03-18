@@ -22,6 +22,7 @@ import java.util.Map;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.local.LocalDeployerProperties;
 import org.springframework.cloud.deployer.spi.local.LocalTaskLauncher;
 
 /**
@@ -31,7 +32,7 @@ import org.springframework.cloud.deployer.spi.local.LocalTaskLauncher;
 public class TimeStamp {
 
 	public static void main(String[] args) throws InterruptedException {
-		LocalTaskLauncher launcher = new LocalTaskLauncher();
+		LocalTaskLauncher launcher = new LocalTaskLauncher(new LocalDeployerProperties());
 		String timestampId = launcher.launch(createAppDeploymentRequest("timestamp-task"));
 		for (int i = 0; i < 50; i++) {
 			Thread.sleep(100);

@@ -33,12 +33,12 @@ import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -62,12 +62,16 @@ public class LocalTaskLauncher implements TaskLauncher {
 
 	private static final int DEFAULT_SERVER_PORT = 8080;
 
-	@Autowired
-	private LocalDeployerProperties properties = new LocalDeployerProperties();
+	private final LocalDeployerProperties properties;
 
-	private Map<String, Instance> running = new ConcurrentHashMap<>();
+	private final Map<String, Instance> running = new ConcurrentHashMap<>();
 
 	private final RestTemplate restTemplate = new RestTemplate();
+
+	public LocalTaskLauncher(LocalDeployerProperties properties) {
+		Assert.notNull(properties, "LocalDeployerProperties must not be null");
+		this.properties = properties;
+	}
 
 	@Override
 	public String launch(AppDeploymentRequest request) {

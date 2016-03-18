@@ -32,25 +32,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * An {@link AppDeployer} implementation that spins off a new JVM process per app instance.
+ *
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Mark Fisher
@@ -84,12 +84,8 @@ public class LocalAppDeployer implements AppDeployer {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	public LocalAppDeployer() {
-		this(new LocalDeployerProperties());
-	}
-
-	@Autowired
 	public LocalAppDeployer(LocalDeployerProperties properties) {
+		Assert.notNull(properties, "LocalDeployerProperties must not be null");
 		this.properties = properties;
 		try {
 			this.logPathRoot = Files.createTempDirectory(properties.getWorkingDirectoriesRoot(), "spring-cloud-dataflow-");
