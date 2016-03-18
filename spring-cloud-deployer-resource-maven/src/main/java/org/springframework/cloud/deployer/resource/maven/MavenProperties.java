@@ -48,7 +48,22 @@ public class MavenProperties {
 	 */
 	private boolean offline;
 
+	/**
+	 * Proxy configuration properties.
+	 */
 	private Proxy proxy;
+
+	/**
+	 * The connect timeout. If <code>null</code>, the underlying default will be used.
+	 * @see {@link org.eclipse.aether.ConfigurationProperties#CONNECT_TIMEOUT}
+	 */
+	private Integer connectTimeout;
+
+	/**
+	 * The request timeout. If <code>null</code>, the underlying default will be used.
+	 * @see {@link org.eclipse.aether.ConfigurationProperties#REQUEST_TIMEOUT}
+	 */
+	private Integer requestTimeout;
 
 	public void setRemoteRepositories(String[] remoteRepositories) {
 		this.remoteRepositories = remoteRepositories;
@@ -72,6 +87,22 @@ public class MavenProperties {
 
 	public void setOffline(Boolean offline) {
 		this.offline = offline;
+	}
+
+	public Integer getConnectTimeout() {
+		return this.connectTimeout;
+	}
+
+	public void setConnectTimeout(Integer connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public Integer getRequestTimeout() {
+		return this.requestTimeout;
+	}
+
+	public void setRequestTimeout(Integer requestTimeout) {
+		this.requestTimeout = requestTimeout;
 	}
 
 	public Proxy getProxy() {
