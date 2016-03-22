@@ -45,6 +45,7 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
@@ -54,6 +55,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 public class LocalAppDeployer implements AppDeployer {
 
@@ -134,8 +136,12 @@ public class LocalAppDeployer implements AppDeployer {
 			if (properties.isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
-			String countProperty = request.getDefinition().getProperties().get(COUNT_PROPERTY_KEY);
-			int count = (countProperty != null) ? Integer.parseInt(countProperty) : 1;
+			// The count property from the environment will have high precedence over the one from definition.
+			String countProperty = request.getEnvironmentProperties().get(COUNT_PROPERTY_KEY);
+			if (!StringUtils.hasText(countProperty)) {
+				countProperty = request.getDefinition().getProperties().get(COUNT_PROPERTY_KEY);
+			}
+			int count = (StringUtils.hasText(countProperty)) ? Integer.parseInt(countProperty) : 1;
 			for (int i = 0; i < count; i++) {
 				int port = useDynamicPort ? SocketUtils.findAvailableTcpPort(DEFAULT_SERVER_PORT)
 						: Integer.parseInt(request.getDefinition().getProperties().get(SERVER_PORT_KEY));
