@@ -136,11 +136,7 @@ public class LocalAppDeployer implements AppDeployer {
 			if (properties.isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
-			// The count property from the environment will have high precedence over the one from definition.
 			String countProperty = request.getEnvironmentProperties().get(COUNT_PROPERTY_KEY);
-			if (!StringUtils.hasText(countProperty)) {
-				countProperty = request.getDefinition().getProperties().get(COUNT_PROPERTY_KEY);
-			}
 			int count = (StringUtils.hasText(countProperty)) ? Integer.parseInt(countProperty) : 1;
 			for (int i = 0; i < count; i++) {
 				int port = useDynamicPort ? SocketUtils.findAvailableTcpPort(DEFAULT_SERVER_PORT)
