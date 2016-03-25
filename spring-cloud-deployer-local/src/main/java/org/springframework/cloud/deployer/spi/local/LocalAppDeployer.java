@@ -144,7 +144,7 @@ public class LocalAppDeployer implements AppDeployer {
 				if (useDynamicPort) {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
-				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
+				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-Dfile.encoding=UTF-8", "-jar", jarPath);
 				builder.environment().keySet().retainAll(ENV_VARS_TO_INHERIT);
 				builder.environment().putAll(args);
 				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
