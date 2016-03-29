@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.deployer.registry;
+package org.springframework.cloud.deployer.resource.registry;
 
 import java.net.URI;
 import java.util.Map;
