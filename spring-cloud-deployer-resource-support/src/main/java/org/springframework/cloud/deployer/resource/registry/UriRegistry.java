@@ -20,6 +20,8 @@ import java.net.URI;
 import java.util.Map;
 
 /**
+ * Registry for storing and finding {@link URI}s via a string key.
+ *
  * @author Patrick Peralta
  */
 public interface UriRegistry {
@@ -29,7 +31,7 @@ public interface UriRegistry {
 	 *
 	 * @param key the key for the URI
 	 * @return the {@code URI} for the given key
-	 * @throws IllegalAccessException if no URI is registered with the key
+	 * @throws IllegalArgumentException if no URI is registered with the key
 	 */
 	URI find(String key);
 
