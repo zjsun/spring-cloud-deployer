@@ -45,18 +45,6 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 
 	private volatile ResourceLoader resourceLoader;
 
-	private final String[] resourceUris;
-
-
-	/**
-	 * Construct a {@code UriRegistryPopulator}.
-	 *
-	 * @param resourceUris array of strings indicating the URIs to load properties from.
-	 */
-	public UriRegistryPopulator(String[] resourceUris) {
-		Assert.noNullElements(resourceUris);
-		this.resourceUris = resourceUris;
-	}
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
@@ -65,14 +53,16 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 
 	/**
 	 * Populate the provided registry with the contents of
-	 * the property files indicated by {@link #resourceUris}.
+	 * the property files indicated by {@code resourceUris}.
 	 * Any existing registrations in the registry will be
 	 * overwritten.
 	 *
 	 * @param registry the registry to populate
+	 * @param resourceUris string(s) indicating the URIs to load properties from.
 	 */
-	public void populateRegistry(UriRegistry registry) {
-		for (String uri : this.resourceUris) {
+	public void populateRegistry(UriRegistry registry, String... resourceUris) {
+		Assert.notEmpty(resourceUris);
+		for (String uri : resourceUris) {
 			Resource resource = this.resourceLoader.getResource(uri);
 			Properties properties = new Properties();
 			try(InputStream is = resource.getInputStream()) {

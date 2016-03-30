@@ -48,12 +48,12 @@ public class UriRegistryPopulatorTests {
 	@Test
 	public void populateRegistry() throws Exception {
 		String localUri = "local://local";
-		UriRegistryPopulator populator = new UriRegistryPopulator(new String[] { localUri });
+		UriRegistryPopulator populator = new UriRegistryPopulator();
 		StubResourceLoader resourceLoader = new StubResourceLoader(new PropertiesResource(uris));
 		populator.setResourceLoader(resourceLoader);
 
 		UriRegistry registry = new InMemoryUriRegistry();
-		populator.populateRegistry(registry);
+		populator.populateRegistry(registry, localUri);
 		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
 		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
 		assertThat(registry.findAll().size(), is(this.uris.size()));
