@@ -236,7 +236,7 @@ class MavenArtifactResolver {
 		}
 		catch (ArtifactResolutionException e) {
 			throw new IllegalStateException(
-					String.format("failed to resolve MavenResource: %s", toString()), e);
+					String.format("failed to resolve MavenResource: %s", resource.toString()), e);
 		}
 		return toResource(resolvedArtifact);
 	}
