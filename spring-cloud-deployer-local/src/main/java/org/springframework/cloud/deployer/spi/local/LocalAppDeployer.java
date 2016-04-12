@@ -26,11 +26,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import javax.annotation.PreDestroy;
 
@@ -56,6 +57,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Patrick Peralta
  */
 public class LocalAppDeployer implements AppDeployer {
 
@@ -70,15 +72,6 @@ public class LocalAppDeployer implements AppDeployer {
 	private static final int DEFAULT_SERVER_PORT = 8080;
 
 	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
-
-	private static final Set<String> ENV_VARS_TO_INHERIT = new HashSet<>();
-
-	static {
-		// TMP controls the location of java.io.tmpDir on Windows
-		if (System.getProperty("os.name").startsWith("Windows")) {
-			ENV_VARS_TO_INHERIT.add("TMP");
-		}
-	}
 
 	private final LocalDeployerProperties properties;
 
@@ -144,8 +137,8 @@ public class LocalAppDeployer implements AppDeployer {
 				if (useDynamicPort) {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
-				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-Dfile.encoding=UTF-8", "-jar", jarPath);
-				builder.environment().keySet().retainAll(ENV_VARS_TO_INHERIT);
+				ProcessBuilder builder = new ProcessBuilder(properties.getJavaCmd(), "-jar", jarPath);
+				retainEnvVars(builder.environment().keySet());
 				builder.environment().putAll(args);
 				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
@@ -160,6 +153,31 @@ public class LocalAppDeployer implements AppDeployer {
 			throw new RuntimeException("Exception trying to deploy " + request, e);
 		}
 		return deploymentId;
+	}
+
+	/**
+	 * Retain the environment variable strings in the provided set indicated by
+	 * {@link LocalDeployerProperties#getEnvVarsToInherit}.
+	 * This assumes that the provided set can be modified.
+	 *
+	 * @param vars set of environment variable strings
+	 */
+	private void retainEnvVars(Set<String> vars) {
+		String[] patterns = properties.getEnvVarsToInherit();
+
+		for (Iterator<String> iterator = vars.iterator(); iterator.hasNext();) {
+			String var = iterator.next();
+			boolean retain = false;
+			for (String pattern : patterns) {
+				if (Pattern.matches(pattern, var)) {
+					retain = true;
+					break;
+				}
+			}
+			if (!retain) {
+				iterator.remove();
+			}
+		}
 	}
 
 	@Override
