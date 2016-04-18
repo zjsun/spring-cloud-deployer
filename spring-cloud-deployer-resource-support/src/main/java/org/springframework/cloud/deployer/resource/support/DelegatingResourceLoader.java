@@ -98,7 +98,13 @@ public class DelegatingResourceLoader implements ResourceLoader {
 				File cachedResource = new File(cacheDirectory, cacheName);
 				if (!cachedResource.exists()) {
 					logger.info("Caching file {} as given location {}", cachedResource, location);
-					FileCopyUtils.copy(resource.getInputStream(), new FileOutputStream(cachedResource));
+					try {
+						FileCopyUtils.copy(resource.getInputStream(), new FileOutputStream(cachedResource));
+					}
+					catch (UnsupportedOperationException e) {
+						logger.warn(String.format("Unable to cache file since getInputStream() is "
+								+ "not supported for resource: %s", resource));
+					}
 				}
 				else {
 					logger.info("Reusing cached file {} as given location {}", cachedResource, location);
