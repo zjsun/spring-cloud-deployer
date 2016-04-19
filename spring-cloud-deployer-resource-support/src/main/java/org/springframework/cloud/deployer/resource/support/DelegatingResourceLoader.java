@@ -159,7 +159,7 @@ public class DelegatingResourceLoader implements ResourceLoader {
 			resource.getFile();
 			return true;
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 		}
 		return false;
 	}
