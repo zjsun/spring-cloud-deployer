@@ -17,12 +17,15 @@
 package org.springframework.cloud.deployer.resource.registry;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -33,6 +36,7 @@ import org.springframework.core.io.Resource;
 
 /**
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class UriRegistryPopulatorTests {
 
@@ -53,7 +57,7 @@ public class UriRegistryPopulatorTests {
 		populator.setResourceLoader(resourceLoader);
 
 		UriRegistry registry = new InMemoryUriRegistry();
-		populator.populateRegistry(registry, localUri);
+		populator.populateRegistry(true, registry, localUri);
 		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
 		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
 		assertThat(registry.findAll().size(), is(this.uris.size()));
@@ -73,6 +77,27 @@ public class UriRegistryPopulatorTests {
 		}
 	}
 
+	@Test
+	public void populateRegistryWithOverwrites() throws Exception {
+		String localUri = "local://local";
+		UriRegistryPopulator populator = new UriRegistryPopulator();
+		PropertiesResource propertiesResource = new PropertiesResource(uris);
+		StubResourceLoader resourceLoader = new StubResourceLoader(propertiesResource);
+		populator.setResourceLoader(resourceLoader);
+		UriRegistry registry = new InMemoryUriRegistry();
+		Map<String, URI> registered = populator.populateRegistry(true, registry, localUri);
+		assertTrue(registered.size() == 3);
+		// Perform overwrites on the existing keys
+		Map<String, URI> registeredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
+		assertTrue(registeredWithNoOverwrites.size() == 0);
+		propertiesResource.addNewProperty("source.http", "maven://org.springframework.cloud.stream.module:http-source:jar:exec:1.0.0");
+		Map<String, URI> newlyRegisteredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
+		assertTrue(newlyRegisteredWithNoOverwrites.size() == 1);
+		propertiesResource.addNewProperty("source.twitter", "maven://org.springframework.cloud.stream.module:twitter-source:jar:exec:1.0.0");
+		Map<String, URI> newlyRegisteredWithOverwrites = populator.populateRegistry(true, registry, localUri);
+		assertTrue(newlyRegisteredWithOverwrites.size() == 5);
+	}
+
 
 	/**
 	 * {@link Resource} implementation that returns an {@link InputStream}
@@ -84,6 +109,13 @@ public class UriRegistryPopulatorTests {
 
 		public PropertiesResource(Properties properties) {
 			this.properties = properties;
+		}
+
+		public Properties addNewProperty(String key, String value) {
+			if (this.properties != null) {
+				this.properties.put(key, value);
+			}
+			return this.properties;
 		}
 
 		@Override
