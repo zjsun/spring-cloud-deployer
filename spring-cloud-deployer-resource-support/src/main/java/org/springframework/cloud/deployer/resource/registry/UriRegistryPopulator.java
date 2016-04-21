@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -60,16 +62,19 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 	 * @param registry the registry to populate
 	 * @param resourceUris string(s) indicating the URIs to load properties from.
 	 */
-	public void populateRegistry(UriRegistry registry, String... resourceUris) {
+	public Map<String, URI> populateRegistry(UriRegistry registry, String... resourceUris) {
 		Assert.notEmpty(resourceUris);
-		for (String uri : resourceUris) {
-			Resource resource = this.resourceLoader.getResource(uri);
+		Map<String, URI> registered = new HashMap<>();
+		for (String resourceUri : resourceUris) {
+			Resource resource = this.resourceLoader.getResource(resourceUri);
 			Properties properties = new Properties();
-			try(InputStream is = resource.getInputStream()) {
+			try (InputStream is = resource.getInputStream()) {
 				properties.load(is);
 				for (String key : properties.stringPropertyNames()) {
 					try {
-						registry.register(key, new URI(properties.getProperty(key)));
+						URI uri = new URI(properties.getProperty(key));
+						registry.register(key, uri);
+						registered.put(key, uri);
 					}
 					catch (URISyntaxException e) {
 						logger.warn(String.format("'%s' for '%s' is not a properly formed URI",
@@ -81,7 +86,7 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 				throw new RuntimeException(e);
 			}
 		}
-
+		return registered;
 	}
 
 }
