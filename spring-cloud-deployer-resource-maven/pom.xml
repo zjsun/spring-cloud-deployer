@@ -18,8 +18,7 @@
 	</parent>
 
 	<properties>
-		<aether.version>1.0.2.v20150114</aether.version>
-		<maven.version>3.1.0</maven.version>
+
 	</properties>
 
 	<dependencies>
