@@ -1,0 +1,46 @@
+== Spring Cloud Deployer image:https://build.spring.io/plugins/servlet/buildStatusImage/SCD-DEPMASTER[Build Status, link=https://build.spring.io/browse/SCD-DEPMASTER] image:https://badge.waffle.io/spring-cloud/spring-cloud-deployer.svg?label=ready&title=Ready[Stories Ready, link=http://waffle.io/spring-cloud/spring-cloud-deployer] image:https://badge.waffle.io/spring-cloud/spring-cloud-deployer.svg?label=In%20Progress&title=In%20Progress[Stories In Progress, link=http://waffle.io/spring-cloud/spring-cloud-deployer]
+
+The Spring Cloud Deployer project defines an SPI for deploying long lived applications and short lived tasks.
+
+== Components
+
+The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-spi[SPI] project
+defines the core interfaces, including https://github.com/spring-cloud/spring-cloud-deployer/blob/master/spring-cloud-deployer-spi/src/main/java/org/springframework/cloud/deployer/spi/app/AppDeployer.java[AppDeployer]
+and https://github.com/spring-cloud/spring-cloud-deployer/blob/master/spring-cloud-deployer-spi/src/main/java/org/springframework/cloud/deployer/spi/task/TaskLauncher.java[TaskLauncher]
+as well as the core domain model.
+
+The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-spi-test[SPI Test] project provides
+the basic test framework that any SPI implementation should use to verify its functionality.
+
+The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-resource-maven[spring-cloud-deployer-resource-maven]
+project provides support for referencing Maven artifacts via Spring's `Resource` abstraction.
+
+The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-resource-docker[spring-cloud-deployer-resource-docker]
+project provides support for referencing Docker artifacts via Spring's `Resource` abstraction.
+
+The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-resource-support[spring-cloud-deployer-resource-support]
+project provides various common support classes for working with `Resource`s, such as the
+https://github.com/spring-cloud/spring-cloud-deployer/blob/master/spring-cloud-deployer-resource-support/src/main/java/org/springframework/cloud/deployer/resource/registry/UriRegistry.java[UriRegistry]
+for maintaining the locations of app artifacts, and the
+https://github.com/spring-cloud/spring-cloud-deployer/blob/master/spring-cloud-deployer-resource-support/src/main/java/org/springframework/cloud/deployer/resource/support/DelegatingResourceLoader.java[DelegatingResourceLoader]
+for working with multiple `ResourceLoader` implementations in a map with URI schemes as keys.
+
+There is also an implementation of the SPI for running apps locally. That link is provided below along with other SPI implementations.
+
+== Implementations
+
+This deployer SPI has been implemented for several runtime environments. For example, here are the github locations for several implementations:
+
+* https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-local[Local]
+* https://github.com/spring-cloud/spring-cloud-deployer-cloudfoundry[Cloud Foundry]
+* https://github.com/spring-cloud/spring-cloud-deployer-yarn[YARN]
+* https://github.com/spring-cloud/spring-cloud-deployer-mesos[Mesos]
+* https://github.com/spring-cloud/spring-cloud-deployer-kubernetes[Kubernetes]
+
+=== Building
+
+Clone the repo and type 
+
+----
+$ ./mvnw clean install 
+----
