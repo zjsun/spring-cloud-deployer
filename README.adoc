@@ -19,7 +19,7 @@ The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-clo
 project provides support for referencing Docker artifacts via Spring's `Resource` abstraction.
 
 The https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-resource-support[spring-cloud-deployer-resource-support]
-project provides various common support classes for working with `Resource`s, such as the
+project provides various common support classes for working with `Resources`, such as the
 https://github.com/spring-cloud/spring-cloud-deployer/blob/master/spring-cloud-deployer-resource-support/src/main/java/org/springframework/cloud/deployer/resource/registry/UriRegistry.java[UriRegistry]
 for maintaining the locations of app artifacts, and the
 https://github.com/spring-cloud/spring-cloud-deployer/blob/master/spring-cloud-deployer-resource-support/src/main/java/org/springframework/cloud/deployer/resource/support/DelegatingResourceLoader.java[DelegatingResourceLoader]
@@ -29,7 +29,7 @@ There is also an implementation of the SPI for running apps locally. That link i
 
 == Implementations
 
-This deployer SPI has been implemented for several runtime environments. For example, here are the github locations for several implementations:
+This deployer SPI has been implemented for several runtime environments. Here are the github locations:
 
 * https://github.com/spring-cloud/spring-cloud-deployer/tree/master/spring-cloud-deployer-local[Local]
 * https://github.com/spring-cloud/spring-cloud-deployer-cloudfoundry[Cloud Foundry]
