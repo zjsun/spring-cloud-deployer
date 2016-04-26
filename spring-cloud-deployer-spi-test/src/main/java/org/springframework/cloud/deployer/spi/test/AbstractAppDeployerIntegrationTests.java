@@ -73,7 +73,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractAppDeployerIntegrationTests {
 
-	protected static final Logger log = LoggerFactory.getLogger(AbstractAppDeployerIntegrationTests.class);
+	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	protected abstract AppDeployer appDeployer();
 
