@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -56,7 +57,7 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 
 	private final Map<String, ResourceLoader> loaders;
 
-	private ResourceLoader contextResourceLoader;
+	private ResourceLoader defaultResourceLoader = new DefaultResourceLoader();
 
 	private final File cacheDirectory;
 
@@ -85,7 +86,9 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 
 	@Override
 	public void setResourceLoader(ResourceLoader contextResourceLoader) {
-		this.contextResourceLoader = contextResourceLoader;
+		if (contextResourceLoader != null && contextResourceLoader != this) {
+			this.defaultResourceLoader = contextResourceLoader;
+		}
 	}
 
 	@Override
@@ -96,7 +99,7 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 			Assert.notNull(scheme, "a scheme (prefix) is required");
 			ResourceLoader loader = this.loaders.get(scheme);
 			if (loader == null) {
-				loader = this.contextResourceLoader;
+				loader = this.defaultResourceLoader;
 			}
 			Resource resource = loader.getResource(location);
 			if (existsAsFile(resource)) {
