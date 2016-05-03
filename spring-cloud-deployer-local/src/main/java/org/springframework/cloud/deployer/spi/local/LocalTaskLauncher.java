@@ -118,9 +118,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 			if (useDynamicPort) {
 				args.put(SERVER_PORT_KEY, String.valueOf(port));
 			}
-			ProcessBuilder builder = new ProcessBuilder(buildJarExecutionCommand(jarPath, request));
-			builder.environment().clear();
-			builder.environment().putAll(args);
+			ProcessBuilder builder = buildProcessBuilder(jarPath, request, args);
 			Instance instance = new Instance(builder, workDir, port);
 			running.put(taskLaunchId, instance);
 			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {

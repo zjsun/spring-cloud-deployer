@@ -17,6 +17,10 @@
 package org.springframework.cloud.deployer.spi.local;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.util.Assert;
@@ -64,5 +68,48 @@ public abstract class AbstractDeployerSupport {
 		commands.add(jarPath);
 		commands.addAll(request.getCommandlineArguments());
 		return commands.toArray(new String[0]);
+	}
+
+	/**
+	 * Retain the environment variable strings in the provided set indicated by
+	 * {@link LocalDeployerProperties#getEnvVarsToInherit}.
+	 * This assumes that the provided set can be modified.
+	 *
+	 * @param vars set of environment variable strings
+	 */
+	protected void retainEnvVars(Set<String> vars) {
+		String[] patterns = getLocalDeployerProperties().getEnvVarsToInherit();
+
+		for (Iterator<String> iterator = vars.iterator(); iterator.hasNext();) {
+			String var = iterator.next();
+			boolean retain = false;
+			for (String pattern : patterns) {
+				if (Pattern.matches(pattern, var)) {
+					retain = true;
+					break;
+				}
+			}
+			if (!retain) {
+				iterator.remove();
+			}
+		}
+	}
+
+	/**
+	 * Builds the process builder.
+	 *
+	 * @param jarPath the jar path
+	 * @param request the request
+	 * @param args the args
+	 * @return the process builder
+	 */
+	protected ProcessBuilder buildProcessBuilder(String jarPath, AppDeploymentRequest request, Map<String, String> args) {
+		Assert.notNull(jarPath, "Jar path must be set");
+		Assert.notNull(request, "AppDeploymentRequest must be set");
+		Assert.notNull(args, "Args must be set");
+		ProcessBuilder builder = new ProcessBuilder(buildJarExecutionCommand(jarPath, request));
+		retainEnvVars(builder.environment().keySet());
+		builder.environment().putAll(args);
+		return builder;
 	}
 }
