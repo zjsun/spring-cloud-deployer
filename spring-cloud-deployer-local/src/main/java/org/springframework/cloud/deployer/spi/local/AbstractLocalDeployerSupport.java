@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResourceAccessException;
@@ -62,24 +64,31 @@ public abstract class AbstractLocalDeployerSupport {
 	}
 
 	/**
-	 * Builds the jar execution command.
+	 * Builds the execution command for an application.
 	 *
-	 * @param jarPath the jar path
-	 * @param request the request
-	 * @return the string[]
+	 * @param request the request for the application to execute
+	 * @return the build command as a string array
 	 */
-	protected String[] buildJarExecutionCommand(String jarPath, AppDeploymentRequest request) {
+	private String[] buildExecutionCommand(AppDeploymentRequest request) {
 		ArrayList<String> commands = new ArrayList<String>();
 		commands.add(properties.getJavaCmd());
 		Map<String, String> envProps = request.getEnvironmentProperties();
-		if (envProps.containsKey("main") && envProps.containsKey("classpath")) {
+		if (envProps.containsKey("main") || envProps.containsKey("classpath")) {
+			Assert.isTrue(envProps.containsKey("main") && envProps.containsKey("classpath"),
+					"the 'main' and 'classpath' environment properties are both required if either is provided");
 			commands.add("-cp");
 			commands.add(envProps.get("classpath"));
 			commands.add(envProps.get("main"));
 		}
 		else {
 			commands.add("-jar");
-			commands.add(jarPath);
+			Resource resource = request.getResource();
+			try {
+				commands.add(resource.getFile().getAbsolutePath());
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 		commands.addAll(request.getCommandlineArguments());
 		return commands.toArray(new String[0]);
@@ -113,16 +122,14 @@ public abstract class AbstractLocalDeployerSupport {
 	/**
 	 * Builds the process builder.
 	 *
-	 * @param jarPath the jar path
 	 * @param request the request
 	 * @param args the args
 	 * @return the process builder
 	 */
-	protected ProcessBuilder buildProcessBuilder(String jarPath, AppDeploymentRequest request, Map<String, String> args) {
-		Assert.notNull(jarPath, "Jar path must be set");
+	protected ProcessBuilder buildProcessBuilder(AppDeploymentRequest request, Map<String, String> args) {
 		Assert.notNull(request, "AppDeploymentRequest must be set");
 		Assert.notNull(args, "Args must be set");
-		ProcessBuilder builder = new ProcessBuilder(buildJarExecutionCommand(jarPath, request));
+		ProcessBuilder builder = new ProcessBuilder(buildExecutionCommand(request));
 		retainEnvVars(builder.environment().keySet());
 		builder.environment().putAll(args);
 		return builder;

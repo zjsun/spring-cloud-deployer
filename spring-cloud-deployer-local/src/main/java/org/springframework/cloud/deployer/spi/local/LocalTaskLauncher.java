@@ -37,7 +37,6 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
-import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
 
 /**
@@ -82,14 +81,6 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 				throw new IllegalStateException(e);
 			}
 		}
-		Resource resource = request.getResource();
-		String jarPath;
-		try {
-			jarPath = resource.getFile().getAbsolutePath();
-		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
 		String taskLaunchId = request.getDefinition().getName();
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
@@ -115,7 +106,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 			if (useDynamicPort) {
 				args.put(SERVER_PORT_KEY, String.valueOf(port));
 			}
-			ProcessBuilder builder = buildProcessBuilder(jarPath, request, args);
+			ProcessBuilder builder = buildProcessBuilder(request, args);
 			TaskInstance instance = new TaskInstance(builder, workDir, port);
 			running.put(taskLaunchId, instance);
 			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {

@@ -40,7 +40,6 @@ import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
 
@@ -87,14 +86,6 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 
 	@Override
 	public String deploy(AppDeploymentRequest request) {
-		Resource resource = request.getResource();
-		String jarPath;
-		try {
-			jarPath = resource.getFile().getAbsolutePath();
-		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
 		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
 		String deploymentId = String.format("%s.%s", group, request.getDefinition().getName());
 		if (running.containsKey(deploymentId)) {
@@ -132,7 +123,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 				if (useDynamicPort) {
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
-				ProcessBuilder builder = buildProcessBuilder(jarPath, request, args);
+				ProcessBuilder builder = buildProcessBuilder(request, args);
 				AppInstance instance = new AppInstance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
 				if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
