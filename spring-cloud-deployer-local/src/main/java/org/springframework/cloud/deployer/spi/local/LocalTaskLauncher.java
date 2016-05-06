@@ -32,14 +32,13 @@ import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.task.LaunchState;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.task.TaskStatus;
 import org.springframework.core.io.Resource;
 import org.springframework.util.SocketUtils;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * A {@link TaskLauncher} implementation that spins off a new JVM process per task launch.
@@ -49,7 +48,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Mark Fisher
  * @author Janne Valkealahti
  */
-public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLauncher {
+public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements TaskLauncher {
 
 	private Path logPathRoot;
 
@@ -61,9 +60,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 
 	private static final int DEFAULT_SERVER_PORT = 8080;
 
-	private final Map<String, Instance> running = new ConcurrentHashMap<>();
-
-	private final RestTemplate restTemplate = new RestTemplate();
+	private final Map<String, TaskInstance> running = new ConcurrentHashMap<>();
 
 	/**
 	 * Instantiates a new local task launcher.
@@ -119,7 +116,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 				args.put(SERVER_PORT_KEY, String.valueOf(port));
 			}
 			ProcessBuilder builder = buildProcessBuilder(jarPath, request, args);
-			Instance instance = new Instance(builder, workDir, port);
+			TaskInstance instance = new TaskInstance(builder, workDir, port);
 			running.put(taskLaunchId, instance);
 			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 				instance.stdout.deleteOnExit();
@@ -137,7 +134,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 	public void cancel(String id) {
 		Instance instance = running.get(id);
 		if (instance != null) {
-			if (isAlive(instance.process)) {
+			if (isAlive(instance.getProcess())) {
 				shutdownAndWait(instance);
 			}
 			running.remove(id);
@@ -146,21 +143,11 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 
 	@Override
 	public TaskStatus status(String id) {
-		Instance instance = running.get(id);
+		TaskInstance instance = running.get(id);
 		if (instance != null) {
 			return new TaskStatus(id, instance.getState(), instance.getAttributes());
 		}
 		return null;
-	}
-
-	private void shutdownAndWait(Instance instance) {
-		try {
-			restTemplate.postForObject(instance.url + "/shutdown", null, String.class);
-			instance.process.waitFor();
-		}
-		catch (InterruptedException | ResourceAccessException e) {
-			instance.process.destroy();
-		}
 	}
 
 	@PreDestroy
@@ -170,7 +157,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 		}
 	}
 
-	private static class Instance {
+	private static class TaskInstance implements Instance {
 
 		private final Process process;
 
@@ -180,9 +167,9 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 
 		private final File stderr;
 
-		private final URL url;
+		private final URL baseUrl;
 
-		private Instance(ProcessBuilder builder, Path workDir, int port) throws IOException {
+		private TaskInstance(ProcessBuilder builder, Path workDir, int port) throws IOException {
 			builder.directory(workDir.toFile());
 			String workDirPath = workDir.toFile().getAbsolutePath();
 			this.stdout = Files.createFile(Paths.get(workDirPath, "stdout.log")).toFile();
@@ -191,7 +178,17 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 			builder.redirectError(this.stderr);
 			this.process = builder.start();
 			this.workDir = workDir.toFile();
-			this.url = new URL("http", Inet4Address.getLocalHost().getHostAddress(), port, "");
+			this.baseUrl = new URL("http", Inet4Address.getLocalHost().getHostAddress(), port, "");
+		}
+
+		@Override
+		public URL getBaseUrl() {
+			return this.baseUrl;
+		}
+
+		@Override
+		public Process getProcess() {
+			return this.process;
 		}
 
 		public LaunchState getState() {
@@ -206,7 +203,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 				}
 			}
 			try {
-				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+				HttpURLConnection urlConnection = (HttpURLConnection) baseUrl.openConnection();
 				urlConnection.connect();
 				urlConnection.disconnect();
 				return LaunchState.running;
@@ -221,7 +218,7 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 			result.put("working.dir", workDir.getAbsolutePath());
 			result.put("stdout", stdout.getAbsolutePath());
 			result.put("stderr", stderr.getAbsolutePath());
-			result.put("url", url.toString());
+			result.put("url", baseUrl.toString());
 			return result;
 		}
 	}
@@ -240,17 +237,6 @@ public class LocalTaskLauncher extends AbstractDeployerSupport implements TaskLa
 		catch (IllegalThreadStateException e) {
 			// process is still alive
 			return null;
-		}
-	}
-
-	// Copy-pasting of JDK8+ isAlive method to retain JDK7 compatibility
-	private static boolean isAlive(Process process) {
-		try {
-			process.exitValue();
-			return false;
-		}
-		catch (IllegalThreadStateException e) {
-			return true;
 		}
 	}
 }

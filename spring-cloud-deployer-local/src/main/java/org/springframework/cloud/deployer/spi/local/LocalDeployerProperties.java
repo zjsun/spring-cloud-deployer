@@ -52,10 +52,10 @@ public class LocalDeployerProperties {
 	private String javaCmd = "java";
 
 	/**
-	 * Maximum number of milliseconds to wait for application shutdown
+	 * Maximum number of seconds to wait for application shutdown
 	 * via the {@code /shutdown} endpoint.
 	 */
-	private int shutdownTimeout = 30000;
+	private int shutdownTimeout = 30;
 
 
 	public String getJavaCmd() {

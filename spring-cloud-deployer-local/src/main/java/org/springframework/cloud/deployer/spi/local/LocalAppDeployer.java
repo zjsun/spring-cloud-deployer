@@ -34,17 +34,15 @@ import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
 import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * An {@link AppDeployer} implementation that spins off a new JVM process per app instance.
@@ -56,7 +54,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Janne Valkealahti
  * @author Patrick Peralta
  */
-public class LocalAppDeployer extends AbstractDeployerSupport implements AppDeployer {
+public class LocalAppDeployer extends AbstractLocalDeployerSupport implements AppDeployer {
 
 	private Path logPathRoot;
 
@@ -70,9 +68,7 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 
 	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
 
-	private final Map<String, List<Instance>> running = new ConcurrentHashMap<>();
-
-	private final RestTemplate restTemplate = new RestTemplate();
+	private final Map<String, List<AppInstance>> running = new ConcurrentHashMap<>();
 
 	/**
 	 * Instantiates a new local app deployer.
@@ -104,7 +100,7 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 		if (running.containsKey(deploymentId)) {
 			throw new IllegalStateException(String.format("App for '%s' is already running", deploymentId));
 		}
-		List<Instance> processes = new ArrayList<>();
+		List<AppInstance> processes = new ArrayList<>();
 		running.put(deploymentId, processes);
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
@@ -137,7 +133,7 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 					args.put(SERVER_PORT_KEY, String.valueOf(port));
 				}
 				ProcessBuilder builder = buildProcessBuilder(jarPath, request, args);
-				Instance instance = new Instance(deploymentId, i, builder, workDir, port);
+				AppInstance instance = new AppInstance(deploymentId, i, builder, workDir, port);
 				processes.add(instance);
 				if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 					instance.stdout.deleteOnExit();
@@ -154,10 +150,10 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 
 	@Override
 	public void undeploy(String id) {
-		List<Instance> processes = running.get(id);
+		List<AppInstance> processes = running.get(id);
 		if (processes != null) {
 			for (Instance instance : processes) {
-				if (isAlive(instance.process)) {
+				if (isAlive(instance.getProcess())) {
 					shutdownAndWait(instance);
 				}
 			}
@@ -167,51 +163,14 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 
 	@Override
 	public AppStatus status(String id) {
-		List<Instance> instances = running.get(id);
+		List<AppInstance> instances = running.get(id);
 		AppStatus.Builder builder = AppStatus.of(id);
 		if (instances != null) {
-			for (Instance instance : instances) {
+			for (AppInstance instance : instances) {
 				builder.with(instance);
 			}
 		}
 		return builder.build();
-	}
-
-	/**
-	 * Shut down the {@link Process} backing the application {@link Instance}.
-	 * If the application exposes a {@code /shutdown} endpoint, that will be
-	 * invoked followed by a wait that will not exceed the number of milliseconds
-	 * indicated by {@link LocalDeployerProperties#shutdownTimeout}. If the
-	 * timeout period is exceeded (or if the {@code /shutdown} endpoint is not exposed),
-	 * the process will be shut down via {@link Process#destroy()}.
-	 *
-	 * @param instance the application instance to shut down
-	 */
-	private void shutdownAndWait(Instance instance) {
-		try {
-			int timeout = getLocalDeployerProperties().getShutdownTimeout();
-			if (timeout > 0) {
-				ResponseEntity<String> response = restTemplate.postForEntity(
-						instance.url + "/shutdown", null, String.class);
-				if (response.getStatusCode().is2xxSuccessful()) {
-					long timeoutTimestamp = System.currentTimeMillis() + timeout;
-					while (isAlive(instance.process) && System.currentTimeMillis() < timeoutTimestamp) {
-						Thread.sleep(1000);
-					}
-				}
-			}
-		}
-		catch (ResourceAccessException e) {
-			// ignore I/O errors
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		finally {
-			if (isAlive(instance.process)) {
-				instance.process.destroy();
-			}
-		}
 	}
 
 	@PreDestroy
@@ -221,7 +180,7 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 		}
 	}
 
-	private static class Instance implements AppInstanceStatus {
+	private static class AppInstance implements Instance, AppInstanceStatus {
 
 		private final String deploymentId;
 
@@ -235,9 +194,9 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 
 		private final File stderr;
 
-		private final URL url;
+		private final URL baseUrl;
 
-		private Instance(String deploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
+		private AppInstance(String deploymentId, int instanceNumber, ProcessBuilder builder, Path workDir, int port) throws IOException {
 			this.deploymentId = deploymentId;
 			this.instanceNumber = instanceNumber;
 			builder.directory(workDir.toFile());
@@ -249,12 +208,22 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 			builder.environment().put("INSTANCE_INDEX", Integer.toString(instanceNumber));
 			this.process = builder.start();
 			this.workDir = workDir.toFile();
-			this.url = new URL("http", Inet4Address.getLocalHost().getHostAddress(), port, "");
+			this.baseUrl = new URL("http", Inet4Address.getLocalHost().getHostAddress(), port, "");
 		}
 
 		@Override
 		public String getId() {
 			return deploymentId + "-" + instanceNumber;
+		}
+
+		@Override
+		public URL getBaseUrl() {
+			return this.baseUrl;
+		}
+
+		@Override
+		public Process getProcess() {
+			return this.process;
 		}
 
 		@Override
@@ -270,7 +239,7 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 				}
 			}
 			try {
-				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+				HttpURLConnection urlConnection = (HttpURLConnection) baseUrl.openConnection();
 				urlConnection.connect();
 				urlConnection.disconnect();
 				return DeploymentState.deployed;
@@ -285,7 +254,7 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 			result.put("working.dir", workDir.getAbsolutePath());
 			result.put("stdout", stdout.getAbsolutePath());
 			result.put("stderr", stderr.getAbsolutePath());
-			result.put("url", url.toString());
+			result.put("url", baseUrl.toString());
 			return result;
 		}
 	}
@@ -303,17 +272,6 @@ public class LocalAppDeployer extends AbstractDeployerSupport implements AppDepl
 		catch (IllegalThreadStateException e) {
 			// process is still alive
 			return null;
-		}
-	}
-
-	// Copy-pasting of JDK8+ isAlive method to retain JDK7 compatibility
-	private static boolean isAlive(Process process) {
-		try {
-			process.exitValue();
-			return false;
-		}
-		catch (IllegalThreadStateException e) {
-			return true;
 		}
 	}
 }

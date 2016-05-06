@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.deployer.spi.local;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,24 +24,30 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 /**
- * Base class for app deployer and task launcher providing
+ * Base class for local app deployer and task launcher providing
  * support for common functionality.
  *
  * @author Janne Valkealahti
+ * @author Mark Fisher
  */
-public abstract class AbstractDeployerSupport {
+public abstract class AbstractLocalDeployerSupport {
 
 	private final LocalDeployerProperties properties;
+
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	/**
 	 * Instantiates a new abstract deployer support.
 	 *
 	 * @param properties the local deployer properties
 	 */
-	public AbstractDeployerSupport(LocalDeployerProperties properties) {
+	public AbstractLocalDeployerSupport(LocalDeployerProperties properties) {
 		Assert.notNull(properties, "LocalDeployerProperties must not be null");
 		this.properties = properties;
 	}
@@ -111,5 +118,60 @@ public abstract class AbstractDeployerSupport {
 		retainEnvVars(builder.environment().keySet());
 		builder.environment().putAll(args);
 		return builder;
+	}
+
+	/**
+	 * Shut down the {@link Process} backing the application {@link Instance}.
+	 * If the application exposes a {@code /shutdown} endpoint, that will be
+	 * invoked followed by a wait that will not exceed the number of seconds
+	 * indicated by {@link LocalDeployerProperties#shutdownTimeout}. If the
+	 * timeout period is exceeded (or if the {@code /shutdown} endpoint is not exposed),
+	 * the process will be shut down via {@link Process#destroy()}.
+	 *
+	 * @param instance the application instance to shut down
+	 */
+	protected void shutdownAndWait(Instance instance) {
+		try {
+			int timeout = getLocalDeployerProperties().getShutdownTimeout();
+			if (timeout > 0) {
+				ResponseEntity<String> response = restTemplate.postForEntity(
+						instance.getBaseUrl() + "/shutdown", null, String.class);
+				if (response.getStatusCode().is2xxSuccessful()) {
+					long timeoutTimestamp = System.currentTimeMillis() + (timeout * 1000);
+					while (isAlive(instance.getProcess()) && System.currentTimeMillis() < timeoutTimestamp) {
+						Thread.sleep(1000);
+					}
+				}
+			}
+		}
+		catch (ResourceAccessException e) {
+			// ignore I/O errors
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		finally {
+			if (isAlive(instance.getProcess())) {
+				instance.getProcess().destroy();
+			}
+		}
+	}
+
+	// Copy-pasting of JDK8+ isAlive method to retain JDK7 compatibility
+	protected static boolean isAlive(Process process) {
+		try {
+			process.exitValue();
+			return false;
+		}
+		catch (IllegalThreadStateException e) {
+			return true;
+		}
+	}
+
+	protected interface Instance {
+
+		URL getBaseUrl();
+
+		Process getProcess();
 	}
 }
