@@ -34,8 +34,8 @@ public class TickTock {
 
 	public static void main(String[] args) throws InterruptedException {
 		LocalAppDeployer deployer = new LocalAppDeployer(new LocalDeployerProperties());
-		String logId = deployer.deploy(createAppDeploymentRequest("log-sink", "ticktock"));
-		String timeId = deployer.deploy(createAppDeploymentRequest("time-source", "ticktock"));
+		String logId = deployer.deploy(createAppDeploymentRequest("log-sink-kafka", "ticktock"));
+		String timeId = deployer.deploy(createAppDeploymentRequest("time-source-kafka", "ticktock"));
 		for (int i = 0; i < 12; i++) {
 			Thread.sleep(5 * 1000);
 			System.out.println("time: " + deployer.status(timeId));
@@ -50,14 +50,12 @@ public class TickTock {
 	private static AppDeploymentRequest createAppDeploymentRequest(String app, String stream) {
 		MavenResource resource = new MavenResource.Builder()
 				.artifactId(app)
-				.groupId("org.springframework.cloud.stream.module")
+				.groupId("org.springframework.cloud.stream.app")
 				.version("1.0.0.BUILD-SNAPSHOT")
-				.extension("jar")
-				.classifier("exec")
 				.build();
 		Map<String, String> properties = new HashMap<>();
 		properties.put("server.port", "0");
-		if (app.endsWith("-source")) {
+		if (app.contains("-source-")) {
 			properties.put("spring.cloud.stream.bindings.output.destination", stream);
 		}
 		else {

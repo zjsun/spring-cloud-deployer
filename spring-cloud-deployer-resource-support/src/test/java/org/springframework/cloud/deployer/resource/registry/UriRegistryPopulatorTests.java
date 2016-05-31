@@ -44,9 +44,9 @@ public class UriRegistryPopulatorTests {
 
 	public UriRegistryPopulatorTests() {
 		this.uris = new Properties();
-		this.uris.setProperty("source.file", "maven://org.springframework.cloud.stream.module:file-source:jar:exec:1.0.0");
-		this.uris.setProperty("source.ftp", "maven://org.springframework.cloud.stream.module:ftp-source:jar:exec:1.0.0");
-		this.uris.setProperty("source.jdbc", "maven://org.springframework.cloud.stream.module:jdbc-source:jar:exec:1.0.0");
+		this.uris.setProperty("foo.1", "maven://group1:foo:jar:classifier1:1.0.1");
+		this.uris.setProperty("foo-2", "maven://group2:foo:2.1.7");
+		this.uris.setProperty("bar", "file:///bar-1.2.3.jar");
 	}
 
 	@Test
@@ -90,10 +90,10 @@ public class UriRegistryPopulatorTests {
 		// Perform overwrites on the existing keys
 		Map<String, URI> registeredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
 		assertTrue(registeredWithNoOverwrites.size() == 0);
-		propertiesResource.addNewProperty("source.http", "maven://org.springframework.cloud.stream.module:http-source:jar:exec:1.0.0");
+		propertiesResource.addNewProperty("another", "maven://somegroup:someartifact:jar:exec:1.0.0");
 		Map<String, URI> newlyRegisteredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
 		assertTrue(newlyRegisteredWithNoOverwrites.size() == 1);
-		propertiesResource.addNewProperty("source.twitter", "maven://org.springframework.cloud.stream.module:twitter-source:jar:exec:1.0.0");
+		propertiesResource.addNewProperty("yet-another", "file:///tmp/yet-another.jar");
 		Map<String, URI> newlyRegisteredWithOverwrites = populator.populateRegistry(true, registry, localUri);
 		assertTrue(newlyRegisteredWithOverwrites.size() == 5);
 	}

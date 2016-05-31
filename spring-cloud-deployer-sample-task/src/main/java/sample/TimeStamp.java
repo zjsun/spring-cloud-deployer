@@ -46,10 +46,8 @@ public class TimeStamp {
 	private static AppDeploymentRequest createAppDeploymentRequest(String app) {
 		MavenResource resource = new MavenResource.Builder()
 				.artifactId(app)
-				.groupId("org.springframework.cloud.task.module")
+				.groupId("org.springframework.cloud.task.app")
 				.version("1.0.0.BUILD-SNAPSHOT")
-				.extension("jar")
-				.classifier("exec")
 				.build();
 		Map<String, String> properties = new HashMap<>();
 		properties.put("server.port", "0");
