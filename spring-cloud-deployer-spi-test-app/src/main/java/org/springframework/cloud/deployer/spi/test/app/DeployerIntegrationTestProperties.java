@@ -45,6 +45,12 @@ public class DeployerIntegrationTestProperties {
 	private int killDelay = -1;
 
 	/**
+	 * The exit code used when this app will kill itself.
+	 * <p>Set this to 0 for normal exit</p>
+	 */
+	private int exitCode = 1;
+
+	/**
 	 * If not empty, only the app intances whose number(s) are contained in this set
 	 * will behave according to the other configuration parameters.
 	 */
@@ -74,6 +80,14 @@ public class DeployerIntegrationTestProperties {
 
 	public void setKillDelay(int killDelay) {
 		this.killDelay = killDelay;
+	}
+
+	public int getExitCode() {
+		return exitCode;
+	}
+
+	public void setExitCode(int exitCode) {
+		this.exitCode = exitCode;
 	}
 
 	public Set<Integer> getMatchInstances() {

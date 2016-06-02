@@ -55,7 +55,7 @@ public class DeployerIntegrationTest {
 					public void run() {
 						try {
 							Thread.sleep(properties.getKillDelay());
-							System.exit(1);
+							System.exit(properties.getExitCode());
 						}
 						catch (InterruptedException e) {
 							throw new RuntimeException(e);
