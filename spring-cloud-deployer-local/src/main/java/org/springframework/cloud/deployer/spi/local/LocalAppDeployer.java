@@ -86,7 +86,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 
 	@Override
 	public String deploy(AppDeploymentRequest request) {
-		String group = request.getEnvironmentProperties().get(GROUP_PROPERTY_KEY);
+		String group = request.getDeploymentProperties().get(GROUP_PROPERTY_KEY);
 		String deploymentId = String.format("%s.%s", group, request.getDefinition().getName());
 		DeploymentState state = status(deploymentId).getState();
 		if (state != DeploymentState.unknown) {
@@ -98,8 +98,8 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
-		args.putAll(request.getEnvironmentProperties());
-		String groupDeploymentId = request.getEnvironmentProperties().get(GROUP_DEPLOYMENT_ID);
+		args.putAll(request.getDeploymentProperties());
+		String groupDeploymentId = request.getDeploymentProperties().get(GROUP_DEPLOYMENT_ID);
 		if (groupDeploymentId == null) {
 			groupDeploymentId = group + "-" + System.currentTimeMillis();
 		}
@@ -117,7 +117,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			if (getLocalDeployerProperties().isDeleteFilesOnExit()) {
 				workDir.toFile().deleteOnExit();
 			}
-			String countProperty = request.getEnvironmentProperties().get(COUNT_PROPERTY_KEY);
+			String countProperty = request.getDeploymentProperties().get(COUNT_PROPERTY_KEY);
 			int count = (StringUtils.hasText(countProperty)) ? Integer.parseInt(countProperty) : 1;
 			for (int i = 0; i < count; i++) {
 				int port = useDynamicPort ? SocketUtils.findAvailableTcpPort(DEFAULT_SERVER_PORT)

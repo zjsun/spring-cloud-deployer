@@ -72,13 +72,13 @@ public abstract class AbstractLocalDeployerSupport {
 	private String[] buildExecutionCommand(AppDeploymentRequest request) {
 		ArrayList<String> commands = new ArrayList<String>();
 		commands.add(properties.getJavaCmd());
-		Map<String, String> envProps = request.getEnvironmentProperties();
-		if (envProps.containsKey("main") || envProps.containsKey("classpath")) {
-			Assert.isTrue(envProps.containsKey("main") && envProps.containsKey("classpath"),
-					"the 'main' and 'classpath' environment properties are both required if either is provided");
+		Map<String, String> deploymentProperties = request.getDeploymentProperties();
+		if (deploymentProperties.containsKey("main") || deploymentProperties.containsKey("classpath")) {
+			Assert.isTrue(deploymentProperties.containsKey("main") && deploymentProperties.containsKey("classpath"),
+					"the 'main' and 'classpath' deployment properties are both required if either is provided");
 			commands.add("-cp");
-			commands.add(envProps.get("classpath"));
-			commands.add(envProps.get("main"));
+			commands.add(deploymentProperties.get("classpath"));
+			commands.add(deploymentProperties.get("main"));
 		}
 		else {
 			commands.add("-jar");

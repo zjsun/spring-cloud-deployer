@@ -85,7 +85,7 @@ public class LocalTaskLauncher extends AbstractLocalDeployerSupport implements T
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
-		args.putAll(request.getEnvironmentProperties());
+		args.putAll(request.getDeploymentProperties());
 		args.put(JMX_DEFAULT_DOMAIN_KEY, taskLaunchId);
 		args.put("endpoints.shutdown.enabled", "true");
 		args.put("endpoints.jmx.unique-names", "true");

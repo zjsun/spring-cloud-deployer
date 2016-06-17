@@ -32,12 +32,12 @@ import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 public interface AppDeployer {
 
 	/**
-	 * The environment property for the count (number of app instances).
+	 * The deployment property for the count (number of app instances).
 	 */
 	public static String COUNT_PROPERTY_KEY = "spring.cloud.deployer.count";
 
 	/**
-	 * The environment property for the group to which an app belongs.
+	 * The deployment property for the group to which an app belongs.
 	 */
 	public static String GROUP_PROPERTY_KEY = "spring.cloud.deployer.group";
 

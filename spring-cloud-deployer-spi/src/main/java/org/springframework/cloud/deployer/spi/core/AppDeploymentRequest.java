@@ -26,9 +26,9 @@ import org.springframework.util.Assert;
 /**
  * Representation of an app deployment request. This includes the
  * {@link AppDefinition}, the {@link Resource} representing its deployable
- * artifact, and any environment properties.
+ * artifact, and any deployment properties.
  *
- * Environment properties are related to a specific implementation of the SPI
+ * Deployment properties are related to a specific implementation of the SPI
  * and will never be passed into an app itself. For example, a runtime container
  * may allow the definition of various settings for a context where the actual
  * app is executed, such as allowed memory, cpu or simply a way to define
@@ -56,9 +56,9 @@ public class AppDeploymentRequest {
 	private final Resource resource;
 
 	/**
-	 * Map of environment properties for the target runtime of the app.
+	 * Map of deployment properties to be used by the deployer.
 	 */
-	private final Map<String, String> environmentProperties;
+	private final Map<String, String> deploymentProperties;
 
 	/**
 	 * List of command line arguments for the target runtime of the app.
@@ -70,11 +70,11 @@ public class AppDeploymentRequest {
 	 *
 	 * @param definition app definition
 	 * @param resource resource for the underlying app's artifact
-	 * @param environmentProperties map of environment properties; may be {@code null}
+	 * @param deploymentProperties map of deployment properties; may be {@code null}
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
-			Map<String, String> environmentProperties) {
-		this(definition, resource, environmentProperties, null);
+			Map<String, String> deploymentProperties) {
+		this(definition, resource, deploymentProperties, null);
 	}
 
 	/**
@@ -82,25 +82,25 @@ public class AppDeploymentRequest {
 	 *
 	 * @param definition app definition
 	 * @param resource resource for the underlying app's artifact
-	 * @param environmentProperties map of environment properties; may be {@code null}
+	 * @param deploymentProperties map of deployment properties; may be {@code null}
 	 * @param commandlineArguments set of command line arguments; may be {@code null}
 	 */
 	public AppDeploymentRequest(AppDefinition definition, Resource resource,
-			Map<String, String> environmentProperties, List<String> commandlineArguments) {
+			Map<String, String> deploymentProperties, List<String> commandlineArguments) {
 		Assert.notNull(definition, "definition must not be null");
 		Assert.notNull(resource, "resource must not be null");
 		this.definition = definition;
 		this.resource = resource;
-		this.environmentProperties = environmentProperties == null
+		this.deploymentProperties = deploymentProperties == null
 				? Collections.<String, String>emptyMap()
-				: Collections.unmodifiableMap(environmentProperties);
+				: Collections.unmodifiableMap(deploymentProperties);
 		this.commandlineArguments = commandlineArguments == null
 				? Collections.<String>emptyList()
 				: Collections.unmodifiableList(commandlineArguments);
 	}
 
 	/**
-	 * Construct an {@code AppDeploymentRequest} with no environment properties.
+	 * Construct an {@code AppDeploymentRequest} with no deployment properties.
 	 *
 	 * @param definition app definition
 	 * @param resource resource for the underlying app's artifact
@@ -124,10 +124,10 @@ public class AppDeploymentRequest {
 	}
 
 	/**
-	 * @see #environmentProperties
+	 * @see #deploymentProperties
 	 */
-	public Map<String, String> getEnvironmentProperties() {
-		return environmentProperties;
+	public Map<String, String> getDeploymentProperties() {
+		return deploymentProperties;
 	}
 
 	/**
