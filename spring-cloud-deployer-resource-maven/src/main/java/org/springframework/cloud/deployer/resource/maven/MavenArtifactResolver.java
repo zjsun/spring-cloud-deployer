@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,6 +70,8 @@ class MavenArtifactResolver {
 
 	private static final Log log = LogFactory.getLog(MavenArtifactResolver.class);
 
+	private static final String SPRING_REPO_URL = "https://repo.spring.io/libs-snapshot";
+
 	private static final String DEFAULT_CONTENT_TYPE = "default";
 
 	private final RepositorySystem repositorySystem;
@@ -87,13 +90,25 @@ class MavenArtifactResolver {
 	public MavenArtifactResolver(final MavenProperties properties) {
 		Assert.notNull(properties, "MavenProperties must not be null");
 		Assert.notNull(properties.getLocalRepository(), "Local repository path cannot be null");
+		// Add default spring repo as remote repository
+		if (properties.getRemoteRepositories().isEmpty()) {
+			updateDefaultRemoteRepo(properties);
+		}
+		else {
+			boolean springRepoExists = false;
+			for (MavenProperties.RemoteRepository remoteRepository: properties.getRemoteRepositories().values()) {
+				if (remoteRepository.getUrl().contains(SPRING_REPO_URL)) {
+					springRepoExists = true;
+				}
+			}
+			if (!springRepoExists) {
+				updateDefaultRemoteRepo(properties);
+			}
+		}
 		if (log.isDebugEnabled()) {
 			log.debug("Local repository: " + properties.getLocalRepository());
-			if (!ObjectUtils.isEmpty(properties.getRemoteRepositories())) {
-				// just listing the values, ids are simply informative
-				log.debug("Remote repositories: " + StringUtils.arrayToCommaDelimitedString(
-						properties.getRemoteRepositories()));
-			}
+			log.debug("Remote repositories: " +
+					StringUtils.collectionToCommaDelimitedString(properties.getRemoteRepositories().keySet()));
 		}
 		this.properties = properties;
 		if (isProxyEnabled() && proxyHasCredentials()) {
@@ -109,37 +124,40 @@ class MavenArtifactResolver {
 			Assert.isTrue(localRepository.mkdirs(),
 					"Unable to create directory for local repository: " + localRepository);
 		}
-		if (!ObjectUtils.isEmpty(this.properties.getRemoteRepositories())) {
-			int i = 1;
-			for (MavenProperties.RemoteRepository remoteRepository : this.properties.getRemoteRepositories()) {
-				RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
-						String.format("repository%d", i++), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
-				if (isProxyEnabled()) {
-					MavenProperties.Proxy proxyProperties = this.properties.getProxy();
-					if (this.authentication != null) {
-						remoteRepositoryBuilder.setProxy(new Proxy(
-								proxyProperties.getProtocol(),
-								proxyProperties.getHost(),
-								proxyProperties.getPort(),
-								this.authentication));
-					}
-					else {
-						// if proxy does not require authentication
-						remoteRepositoryBuilder.setProxy(new Proxy(
-								proxyProperties.getProtocol(),
-								proxyProperties.getHost(),
-								proxyProperties.getPort()));
-					}
+		for (Map.Entry<String, MavenProperties.RemoteRepository> entry: this.properties.getRemoteRepositories().entrySet()) {
+			MavenProperties.RemoteRepository remoteRepository = entry.getValue();
+			RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
+						entry.getKey(), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
+			if (isProxyEnabled()) {
+				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
+				if (this.authentication != null) {
+					remoteRepositoryBuilder.setProxy(new Proxy(
+							proxyProperties.getProtocol(),
+							proxyProperties.getHost(),
+							proxyProperties.getPort(),
+							this.authentication));
 				}
-				if (remoteRepositoryHasCredentials(remoteRepository)) {
-					final String username = remoteRepository.getAuth().getUsername();
-					final String password = remoteRepository.getAuth().getPassword();
-					remoteRepositoryBuilder.setAuthentication(newAuthentication(username, password));
+				else {
+					// if proxy does not require authentication
+					remoteRepositoryBuilder.setProxy(new Proxy(
+							proxyProperties.getProtocol(),
+							proxyProperties.getHost(),
+							proxyProperties.getPort()));
 				}
-				this.remoteRepositories.add(remoteRepositoryBuilder.build());
 			}
+			if (remoteRepositoryHasCredentials(remoteRepository)) {
+				final String username = remoteRepository.getAuth().getUsername();
+				final String password = remoteRepository.getAuth().getPassword();
+				remoteRepositoryBuilder.setAuthentication(newAuthentication(username, password));
+			}
+			this.remoteRepositories.add(remoteRepositoryBuilder.build());
 		}
 		this.repositorySystem = newRepositorySystem();
+	}
+
+	private void updateDefaultRemoteRepo(MavenProperties properties) {
+		properties.getRemoteRepositories().put("spring" + new Random().nextInt(),
+				new MavenProperties.RemoteRepository("https://repo.spring.io/libs-snapshot"));
 	}
 
 	/**
@@ -229,7 +247,7 @@ class MavenArtifactResolver {
 
 	/*
 	 * Aether's components implement {@link org.eclipse.aether.spi.locator.Service} to ease manual wiring.
-	 * Using the prepopulated {@link DefaultServiceLocator}, we need to register the repository connector 
+	 * Using the prepopulated {@link DefaultServiceLocator}, we need to register the repository connector
 	 * and transporter factories
 	 */
 	private RepositorySystem newRepositorySystem() {

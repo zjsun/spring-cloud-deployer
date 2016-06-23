@@ -17,6 +17,8 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Configuration Properties for Maven.
@@ -42,7 +44,7 @@ public class MavenProperties {
 	/**
 	 * Locations of remote maven repositories from which artifacts will be downloaded, if not available locally.
 	 */
-	private RemoteRepository[] remoteRepositories = new RemoteRepository[] {new RemoteRepository("https://repo.spring.io/libs-snapshot")};
+	private Map<String, RemoteRepository> remoteRepositories = new HashMap<>();
 
 	/**
 	 * Whether the resolver should operate in offline mode.
@@ -66,11 +68,11 @@ public class MavenProperties {
 	 */
 	private Integer requestTimeout;
 
-	public RemoteRepository[] getRemoteRepositories() {
+	public Map<String, RemoteRepository> getRemoteRepositories() {
 		return remoteRepositories;
 	}
 
-	public void setRemoteRepositories(final RemoteRepository[] remoteRepositories) {
+	public void setRemoteRepositories(final Map<String, RemoteRepository> remoteRepositories) {
 		this.remoteRepositories = remoteRepositories;
 	}
 
@@ -187,6 +189,9 @@ public class MavenProperties {
 		private String url;
 
 		private Authentication auth;
+
+		public RemoteRepository() {
+		}
 
 		public RemoteRepository(final String url) {
 			this.url = url;
