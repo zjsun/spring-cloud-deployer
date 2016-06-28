@@ -62,11 +62,11 @@
 									<exec>
 										<arg>java</arg>
 										<arg>-jar</arg>
-										<arg>/maven/${project.build.finalName}.jar</arg>
+										<arg>/maven/${project.build.finalName}-exec.jar</arg>
 									</exec>
 								</entryPoint>
 								<assembly>
-									<descriptorRef>artifact</descriptorRef>
+									<descriptor>assembly.xml</descriptor>
 								</assembly>
 							</build>
 						</image>
