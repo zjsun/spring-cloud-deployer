@@ -289,6 +289,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		return new MavenResource.Builder()
 				.groupId("org.springframework.cloud")
 				.artifactId("spring-cloud-deployer-spi-test-app")
+				.classifier("exec")
 				.version(properties.getProperty("version"))
 				.extension("jar")
 				.build();
