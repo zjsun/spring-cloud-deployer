@@ -98,7 +98,6 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
-		args.putAll(request.getDeploymentProperties());
 		String groupDeploymentId = request.getDeploymentProperties().get(GROUP_DEPLOYMENT_ID);
 		if (groupDeploymentId == null) {
 			groupDeploymentId = group + "-" + System.currentTimeMillis();
