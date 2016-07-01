@@ -65,8 +65,6 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 
 	private static final int DEFAULT_SERVER_PORT = 8080;
 
-	private static final String GROUP_DEPLOYMENT_ID = "dataflow.group-deployment-id";
-
 	private final Map<String, List<AppInstance>> running = new ConcurrentHashMap<>();
 
 	/**
@@ -98,15 +96,12 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 		boolean useDynamicPort = !request.getDefinition().getProperties().containsKey(SERVER_PORT_KEY);
 		HashMap<String, String> args = new HashMap<>();
 		args.putAll(request.getDefinition().getProperties());
-		String groupDeploymentId = request.getDeploymentProperties().get(GROUP_DEPLOYMENT_ID);
-		if (groupDeploymentId == null) {
-			groupDeploymentId = group + "-" + System.currentTimeMillis();
-		}
 		args.put(JMX_DEFAULT_DOMAIN_KEY, deploymentId);
 		args.put("endpoints.shutdown.enabled", "true");
 		args.put("endpoints.jmx.unique-names", "true");
 		try {
-			Path deploymentGroupDir = Paths.get(logPathRoot.toFile().getAbsolutePath(), groupDeploymentId);
+			Path deploymentGroupDir = Paths.get(logPathRoot.toFile().getAbsolutePath(),
+					group + "-" + System.currentTimeMillis());
 			if (!Files.exists(deploymentGroupDir)) {
 				Files.createDirectory(deploymentGroupDir);
 				deploymentGroupDir.toFile().deleteOnExit();
