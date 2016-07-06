@@ -36,12 +36,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileCopyUtils;
 
 /**
  * A {@link ResourceLoader} implementation that delegates to other {@link ResourceLoader} instances
- * that are stored in a Map with their associated URI schemes as the keys.
- *
+ * that are stored in a Map with their associated URI schemes as the keys. If a scheme does not
+ * exist within the Map, it will fallback to a {@link DefaultResourceLoader}.
+ * The Map may be empty (or {@literal null}).
+ * <p>
  * This implementation is also caching remote resources which are not directly accessible
  * as {@link File} into either a given cache directory or on default a temporary location
  * prefixed by "deployer-resource-cache".
@@ -79,8 +82,9 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 	 * @param cacheDirectory the cache directory
 	 */
 	public DelegatingResourceLoader(Map<String, ResourceLoader> loaders, File cacheDirectory) {
-		Assert.notEmpty(loaders, "at least one ResourceLoader is required");
-		this.loaders = Collections.unmodifiableMap(loaders);
+		this.loaders = CollectionUtils.isEmpty(loaders)
+				? Collections.<String, ResourceLoader>emptyMap()
+				: Collections.unmodifiableMap(loaders);
 		this.cacheDirectory = initCacheDirectory(cacheDirectory);
 	}
 
