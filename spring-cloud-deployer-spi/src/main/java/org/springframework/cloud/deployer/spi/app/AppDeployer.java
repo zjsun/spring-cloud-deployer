@@ -56,6 +56,16 @@ public interface AppDeployer {
 	static final String INDEXED_PROPERTY_KEY = PREFIX + "indexed";
 
 	/**
+	 * The property to be set at each instance level to specify the sequence number
+	 * amongst 0 to N-1, where N is the value of the {@value #COUNT_PROPERTY_KEY} property.
+	 * Specified as CAPITAL_WITH_UNDERSCORES as this is typically passed as an environment
+	 * variable, but when targeting a Spring app, other variations may apply.
+	 *
+	 * @see #INDEXED_PROPERTY_KEY
+	 */
+	static final String INSTANCE_INDEX_PROPERTY_KEY = "INSTANCE_INDEX";
+
+	/**
 	 * Deploy an app using an {@link AppDeploymentRequest}. The returned id is
 	 * later used with {@link #undeploy(String)} or {@link #status(String)} to
 	 * undeploy an app or check its status, respectively.
