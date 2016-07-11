@@ -17,11 +17,13 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -110,7 +112,7 @@ class MavenArtifactResolver {
 		for (Map.Entry<String, MavenProperties.RemoteRepository> entry: this.properties.getRemoteRepositories().entrySet()) {
 			MavenProperties.RemoteRepository remoteRepository = entry.getValue();
 			RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
-						entry.getKey(), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
+					entry.getKey(), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
 			if (isProxyEnabled()) {
 				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
 				if (this.authentication != null) {
@@ -245,6 +247,8 @@ class MavenArtifactResolver {
 	/**
 	 * Resolve an artifact and return its location in the local repository. Aether performs the normal
 	 * Maven resolution process ensuring that the latest update is cached to the local repository.
+	 * In addition, if the {@link MavenProperties#resolvePom} flag is <code>true</code>,
+	 * the POM is also resolved and cached.
 	 * @param resource the {@link MavenResource} representing the artifact
 	 * @return a {@link FileSystemResource} representing the resolved artifact in the local repository
 	 * @throws IllegalStateException if the artifact does not exist or the resolution fails
@@ -252,13 +256,21 @@ class MavenArtifactResolver {
 	Resource resolve(MavenResource resource) {
 		Assert.notNull(resource, "MavenResource must not be null");
 		validateCoordinates(resource);
-		Artifact rootArtifact = toArtifact(resource);
 		RepositorySystemSession session = newRepositorySystemSession(this.repositorySystem,
 				this.properties.getLocalRepository());
 		ArtifactResult resolvedArtifact;
 		try {
-			resolvedArtifact = this.repositorySystem.resolveArtifact(session,
-					new ArtifactRequest(rootArtifact, this.remoteRepositories, JavaScopes.RUNTIME));
+			List<ArtifactRequest> artifactRequests = new ArrayList<>(2);
+			if (properties.isResolvePom()) {
+				artifactRequests.add(new ArtifactRequest(toPomArtifact(resource),
+						this.remoteRepositories,
+						JavaScopes.RUNTIME));
+			}
+			artifactRequests.add(new ArtifactRequest(toJarArtifact(resource),
+					this.remoteRepositories,
+					JavaScopes.RUNTIME));
+
+			resolvedArtifact = Iterables.getLast(this.repositorySystem.resolveArtifacts(session, artifactRequests));
 		}
 		catch (ArtifactResolutionException e) {
 			throw new IllegalStateException(
@@ -278,11 +290,19 @@ class MavenArtifactResolver {
 		return new FileSystemResource(resolvedArtifact.getArtifact().getFile());
 	}
 
-	private Artifact toArtifact(MavenResource resource) {
+	private Artifact toJarArtifact(MavenResource resource) {
+		return toArtifact(resource, resource.getExtension());
+	}
+
+	private Artifact toPomArtifact(MavenResource resource) {
+		return toArtifact(resource, "pom");
+	}
+
+	private Artifact toArtifact(MavenResource resource, String extension) {
 		return new DefaultArtifact(resource.getGroupId(),
 				resource.getArtifactId(),
 				resource.getClassifier() != null ? resource.getClassifier() : "",
-				resource.getExtension(),
+				extension,
 				resource.getVersion());
 	}
 }

@@ -68,6 +68,12 @@ public class MavenProperties {
 	 */
 	private Integer requestTimeout;
 
+	/**
+	 * In addition to resolving the JAR artifact, if true, resolve the POM artifact.
+	 * This is consistent with the way that Maven resolves artifacts.
+	 */
+	private boolean resolvePom;
+
 	public Map<String, RemoteRepository> getRemoteRepositories() {
 		return remoteRepositories;
 	}
@@ -114,6 +120,14 @@ public class MavenProperties {
 
 	public void setProxy(Proxy proxy) {
 		this.proxy = proxy;
+	}
+
+	public boolean isResolvePom() {
+		return resolvePom;
+	}
+
+	public void setResolvePom(final boolean resolvePom) {
+		this.resolvePom = resolvePom;
 	}
 
 	public static class Proxy {
@@ -197,6 +211,11 @@ public class MavenProperties {
 			this.url = url;
 		}
 
+		public RemoteRepository(final String url, final Authentication auth) {
+			this.url = url;
+			this.auth = auth;
+		}
+
 		public String getUrl() {
 			return url;
 		}
@@ -219,6 +238,14 @@ public class MavenProperties {
 		private String username;
 
 		private String password;
+
+		public Authentication() {
+		}
+
+		public Authentication(String username, String password) {
+			this.username = username;
+			this.password = password;
+		}
 
 		public String getUsername() {
 			return this.username;
