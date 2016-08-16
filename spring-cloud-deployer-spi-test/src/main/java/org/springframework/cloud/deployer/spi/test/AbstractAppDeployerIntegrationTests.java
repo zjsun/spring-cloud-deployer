@@ -40,7 +40,9 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,9 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	protected abstract AppDeployer appDeployer();
+
+	@Rule
+	public TestName name = new TestName();
 
 	@Test
 	public void testUnknownDeployment() {
@@ -357,9 +362,9 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Map<String, AppInstanceStatus> instances = appDeployer().status(deploymentId).getInstances();
 		// Note we can't rely on instances order, neither on their id indicating their ordinal number
 		assertThat(instances.values(), containsInAnyOrder(
-			hasProperty("state", is(deployed)),
-			hasProperty("state", is(deployed)),
-			hasProperty("state", is(failed))
+				hasProperty("state", is(deployed)),
+				hasProperty("state", is(deployed)),
+				hasProperty("state", is(failed))
 		));
 
 		log.info("Undeploying {}...", deploymentId);
@@ -371,9 +376,8 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	}
 
 
-
 	protected String randomName() {
-		return UUID.randomUUID().toString();
+		return name.getMethodName() + "-" + UUID.randomUUID().toString();
 	}
 
 	/**

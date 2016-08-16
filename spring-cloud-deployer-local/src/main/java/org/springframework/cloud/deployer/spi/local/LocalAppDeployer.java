@@ -233,6 +233,7 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 			}
 			try {
 				HttpURLConnection urlConnection = (HttpURLConnection) baseUrl.openConnection();
+				urlConnection.setConnectTimeout(100);
 				urlConnection.connect();
 				urlConnection.disconnect();
 				return DeploymentState.deployed;
