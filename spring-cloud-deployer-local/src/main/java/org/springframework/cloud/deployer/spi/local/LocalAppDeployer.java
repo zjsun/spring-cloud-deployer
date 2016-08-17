@@ -220,6 +220,11 @@ public class LocalAppDeployer extends AbstractLocalDeployerSupport implements Ap
 		}
 
 		@Override
+		public String toString() {
+			return String.format("%s [%s]", getId(), getState());
+		}
+
+		@Override
 		public DeploymentState getState() {
 			Integer exit = getProcessExitValue(process);
 			// TODO: consider using exit code mapper concept from batch
