@@ -17,7 +17,6 @@
 package org.springframework.cloud.deployer.spi.test;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -28,9 +27,8 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.partial
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -53,13 +51,13 @@ import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
+import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.FileCopyUtils;
 
 /**
  * Abstract base class for integration tests of
@@ -362,26 +360,15 @@ public abstract class AbstractAppDeployerIntegrationTests {
 				Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
 
 		// Assert individual instance state
-		Map<String, AppInstanceStatus> instances = appDeployer().status(deploymentId).getInstances();
-
-		try {
-			Thread.sleep(60_000);
-			for (AppInstanceStatus status : instances.values()) {
-				System.out.println("stdout of " + status);
-				FileCopyUtils.copy(new FileReader(status.getAttributes().get("stdout")), new PrintWriter(System.out));
-				System.out.println("====================================================================================");
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-
 		// Note we can't rely on instances order, neither on their id indicating their ordinal number
-		assertThat(instances.values(), containsInAnyOrder(
-				hasProperty("state", is(deployed)),
-				hasProperty("state", is(deployed)),
-				hasProperty("state", is(failed))
+		List<DeploymentState> individualStates = new ArrayList<>();
+		for (AppInstanceStatus status :appDeployer().status(deploymentId).getInstances().values()) {
+			individualStates.add(status.getState());
+		}
+		assertThat(individualStates, containsInAnyOrder(
+				 is(deployed),
+				is(deployed),
+				is(failed)
 		));
 
 		log.info("Undeploying {}...", deploymentId);
