@@ -47,6 +47,11 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
@@ -55,6 +60,7 @@ import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -65,8 +71,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * implementations.
  * <p>
  * Inheritors should setup an environment with a newly created
- * {@link org.springframework.cloud.deployer.spi.app.AppDeployer} that has no
- * pre-deployed applications. Tests in this class are independent and leave the
+ * {@link org.springframework.cloud.deployer.spi.app.AppDeployer}.
+ * Tests in this class are independent and leave the
  * deployer in a clean state after they successfully run.
  * </p>
  * <p>
@@ -80,11 +86,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Greg Turnquist
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = AbstractAppDeployerIntegrationTests.Config.class)
 public abstract class AbstractAppDeployerIntegrationTests {
 
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	protected abstract AppDeployer appDeployer();
+
+	@Autowired(required = false)
+	private MavenProperties mavenProperties;
 
 	@Rule
 	public TestName name = new TestName();
@@ -409,7 +419,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	}
 
 	/**
-	 * Return a resource corresponding to the integration-test-processor suitable for the target runtime.
+	 * Return a resource corresponding to the spring-cloud-deployer-spi-test-app app suitable for the target runtime.
 	 *
 	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
 	 */
@@ -419,9 +429,9 @@ public abstract class AbstractAppDeployerIntegrationTests {
 			properties.load(new ClassPathResource("integration-test-app.properties").getInputStream());
 		}
 		catch (IOException e) {
-			throw new RuntimeException("Failed to determine which version of integration-test-app to use", e);
+			throw new RuntimeException("Failed to determine which version of spring-cloud-deployer-spi-test-app to use", e);
 		}
-		return new MavenResource.Builder()
+		return new MavenResource.Builder(mavenProperties)
 				.groupId("org.springframework.cloud")
 				.artifactId("spring-cloud-deployer-spi-test-app")
 				.classifier("exec")
@@ -475,6 +485,15 @@ public abstract class AbstractAppDeployerIntegrationTests {
 				statusMatcher.describeTo(description);
 			}
 		};
+	}
+
+	@Configuration
+	public static class Config {
+		@Bean
+		@ConfigurationProperties("maven")
+		public MavenProperties mavenProperties() {
+			return new MavenProperties();
+		}
 	}
 
 }
