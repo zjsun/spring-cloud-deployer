@@ -27,32 +27,18 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.partial
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.deployer.resource.maven.MavenProperties;
-import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
 import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
 import org.springframework.cloud.deployer.spi.app.AppStatus;
@@ -60,10 +46,7 @@ import org.springframework.cloud.deployer.spi.app.DeploymentState;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Abstract base class for integration tests of
@@ -85,19 +68,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Greg Turnquist
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = AbstractAppDeployerIntegrationTests.Config.class)
-public abstract class AbstractAppDeployerIntegrationTests {
-
-	protected final Logger log = LoggerFactory.getLogger(this.getClass());
+public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegrationTests {
 
 	protected abstract AppDeployer appDeployer();
-
-	@Autowired(required = false)
-	private MavenProperties mavenProperties;
-
-	@Rule
-	public TestName name = new TestName();
 
 	@Test
 	public void testUnknownDeployment() {
@@ -115,7 +88,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	@Test
 	public void testSimpleDeployment() {
 		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = integrationTestProcessor();
+		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
@@ -149,7 +122,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 	@Test
 	public void testRedeploy() {
 		AppDefinition definition = new AppDefinition(randomName(), null);
-		Resource resource = integrationTestProcessor();
+		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
@@ -200,7 +173,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("initDelay", "" + 1000 * 60 * 60); // 1hr
 		AppDefinition definition = new AppDefinition(randomName(), properties);
-		Resource resource = integrationTestProcessor();
+		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
@@ -224,7 +197,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		Map<String, String> properties = new HashMap<>();
 		properties.put("killDelay", "0");
 		AppDefinition definition = new AppDefinition(randomName(), properties);
-		Resource resource = integrationTestProcessor();
+		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, properties);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
@@ -255,7 +228,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		// This makes sure that deploymentProperties are not passed to the deployed app itself
 		deploymentProperties.put("killDelay", "0");
 
-		AppDeploymentRequest request = new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties);
+		AppDeploymentRequest request = new AppDeploymentRequest(definition, testApplication(), deploymentProperties);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
@@ -276,7 +249,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		properties.put("parameterThatMayNeedEscaping", "notWhatIsExpected");
 		definition = new AppDefinition(randomName(), properties);
 
-		request = new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties);
+		request = new AppDeploymentRequest(definition, testApplication(), deploymentProperties);
 
 		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
@@ -305,7 +278,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 
 		List<String> cmdLineArgs = Arrays.asList("--commandLineArgValueThatMayNeedEscaping=" + DeployerIntegrationTestProperties.FUNNY_CHARACTERS);
 		AppDeploymentRequest request =
-				new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties, cmdLineArgs);
+				new AppDeploymentRequest(definition, testApplication(), deploymentProperties, cmdLineArgs);
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
@@ -328,7 +301,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 
 		cmdLineArgs = Arrays.asList("--commandLineArgValueThatMayNeedEscaping=" + "notWhatIsExpected");
 		request =
-				new AppDeploymentRequest(definition, integrationTestProcessor(), deploymentProperties, cmdLineArgs);
+				new AppDeploymentRequest(definition, testApplication(), deploymentProperties, cmdLineArgs);
 
 		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
@@ -355,7 +328,7 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		appProperties.put("matchInstances", "1"); // Only instance n°1 will kill itself
 		appProperties.put("killDelay", "0");
 		AppDefinition definition = new AppDefinition(randomName(), appProperties);
-		Resource resource = integrationTestProcessor();
+		Resource resource = testApplication();
 
 		Map<String, String> deploymentProperties = new HashMap<>();
 		deploymentProperties.put(AppDeployer.COUNT_PROPERTY_KEY, "3");
@@ -372,11 +345,11 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		// Assert individual instance state
 		// Note we can't rely on instances order, neither on their id indicating their ordinal number
 		List<DeploymentState> individualStates = new ArrayList<>();
-		for (AppInstanceStatus status :appDeployer().status(deploymentId).getInstances().values()) {
+		for (AppInstanceStatus status : appDeployer().status(deploymentId).getInstances().values()) {
 			individualStates.add(status.getState());
 		}
 		assertThat(individualStates, containsInAnyOrder(
-				 is(deployed),
+				is(deployed),
 				is(deployed),
 				is(failed)
 		));
@@ -387,74 +360,6 @@ public abstract class AbstractAppDeployerIntegrationTests {
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
-	}
-
-
-	protected String randomName() {
-		return name.getMethodName() + "-" + UUID.randomUUID().toString();
-	}
-
-	/**
-	 * Return the timeout to use for repeatedly querying app status while it is being deployed.
-	 * Default value is one minute, being queried every 5 seconds.
-	 */
-	protected Timeout deploymentTimeout() {
-		return new Timeout(12, 5000);
-	}
-
-	/**
-	 * Return the timeout to use for repeatedly querying app status while it is being un-deployed.
-	 * Default value is one minute, being queried every 5 seconds.
-	 */
-	protected Timeout undeploymentTimeout() {
-		return new Timeout(20, 5000);
-	}
-
-	/**
-	 * Return the time to wait between reusing deployment requests. This could be necessary to give
-	 * some platforms time to clean up after undeployment.
-	 */
-	protected int redeploymentPause() {
-		return 0;
-	}
-
-	/**
-	 * Return a resource corresponding to the spring-cloud-deployer-spi-test-app app suitable for the target runtime.
-	 *
-	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
-	 */
-	protected Resource integrationTestProcessor() {
-		Properties properties = new Properties();
-		try {
-			properties.load(new ClassPathResource("integration-test-app.properties").getInputStream());
-		}
-		catch (IOException e) {
-			throw new RuntimeException("Failed to determine which version of spring-cloud-deployer-spi-test-app to use", e);
-		}
-		return new MavenResource.Builder(mavenProperties)
-				.groupId("org.springframework.cloud")
-				.artifactId("spring-cloud-deployer-spi-test-app")
-				.classifier("exec")
-				.version(properties.getProperty("version"))
-				.extension("jar")
-				.build();
-	}
-
-	/**
-	 * Represents a timeout for querying status, with repetitive queries until a certain number have been made.
-	 *
-	 * @author Eric Bottard
-	 */
-	protected static class Timeout {
-
-		public final int maxAttempts;
-
-		public final int pause;
-
-		public Timeout(int maxAttempts, int pause) {
-			this.maxAttempts = maxAttempts;
-			this.pause = pause;
-		}
 	}
 
 	/**
@@ -485,15 +390,6 @@ public abstract class AbstractAppDeployerIntegrationTests {
 				statusMatcher.describeTo(description);
 			}
 		};
-	}
-
-	@Configuration
-	public static class Config {
-		@Bean
-		@ConfigurationProperties("maven")
-		public MavenProperties mavenProperties() {
-			return new MavenProperties();
-		}
 	}
 
 }
