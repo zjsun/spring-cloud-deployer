@@ -26,6 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Eric Bottard
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 @ConfigurationProperties(prefix = "deployer.local")
 public class LocalDeployerProperties {
@@ -70,8 +71,8 @@ public class LocalDeployerProperties {
 		return workingDirectoriesRoot;
 	}
 
-	public void setWorkingDirectoriesRoot(Path workingDirectoriesRoot) {
-		this.workingDirectoriesRoot = workingDirectoriesRoot;
+	public void setWorkingDirectoriesRoot(String workingDirectoriesRoot) {
+		this.workingDirectoriesRoot = new File(workingDirectoriesRoot).toPath();
 	}
 
 	public boolean isDeleteFilesOnExit() {
