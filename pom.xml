@@ -20,8 +20,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.7</java.version>
-		<spring-framework.version>4.2.6.RELEASE</spring-framework.version>
-		<spring-cloud.version>Brixton.SR1</spring-cloud.version>
+		<spring-framework.version>4.3.3.RELEASE</spring-framework.version>
+		<spring-cloud.version>Brixton.SR6</spring-cloud.version>
 		<aether.version>1.0.2.v20150114</aether.version>
 		<maven.version>3.1.0</maven.version>
 	</properties>
