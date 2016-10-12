@@ -21,9 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
-import com.google.common.collect.Iterables;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -54,7 +52,6 @@ import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -270,7 +267,8 @@ class MavenArtifactResolver {
 					this.remoteRepositories,
 					JavaScopes.RUNTIME));
 
-			resolvedArtifact = Iterables.getLast(this.repositorySystem.resolveArtifacts(session, artifactRequests));
+			List<ArtifactResult> results = this.repositorySystem.resolveArtifacts(session, artifactRequests);
+			resolvedArtifact = results.get(results.size() - 1);
 		}
 		catch (ArtifactResolutionException e) {
 			throw new IllegalStateException(
