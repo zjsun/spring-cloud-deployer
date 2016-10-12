@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Properties;
@@ -30,14 +32,14 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Abstract base class containing infrastructure for the TCK, common to both
@@ -47,8 +49,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Eric Bottard
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = AbstractIntegrationTests.Config.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment= NONE)
 public abstract class AbstractIntegrationTests {
 
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
