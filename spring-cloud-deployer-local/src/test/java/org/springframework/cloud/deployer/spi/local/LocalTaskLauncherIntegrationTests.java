@@ -18,7 +18,6 @@ package org.springframework.cloud.deployer.spi.local;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springframework.cloud.deployer.spi.test.AbstractTaskLauncherIntegrationTests;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Eric Bottard
  */
-@SpringApplicationConfiguration(classes = LocalTaskLauncherIntegrationTests.Config.class)
 public class LocalTaskLauncherIntegrationTests extends AbstractTaskLauncherIntegrationTests {
 
 	@Autowired
