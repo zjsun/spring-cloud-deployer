@@ -51,6 +51,7 @@ import org.springframework.util.FileCopyUtils;
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
+ * @author Ilayaperumal Gopinathan
  */
 public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderAware {
 
@@ -117,10 +118,10 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 				return resource;
 			}
 			else {
-				String cacheName = scheme + "-" + ShaUtils.sha1(location) + "-" + resource.getFilename();
+				String cacheName = scheme + "-" + ShaUtils.sha1(location);
 				File cachedResource = new File(cacheDirectory, cacheName);
 				if (!cachedResource.exists()) {
-					logger.info("Caching file {} as given location {}", cachedResource, location);
+					logger.info("Caching resource '{}' as file {}", location, cachedResource);
 					try {
 						FileCopyUtils.copy(resource.getInputStream(), new FileOutputStream(cachedResource));
 					}
@@ -131,7 +132,7 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 					}
 				}
 				else {
-					logger.info("Reusing cached file {} as given location {}", cachedResource, location);
+					logger.info("Reusing cached file {} as given location '{}'", cachedResource, location);
 				}
 				return new FileSystemResource(cachedResource);
 			}
