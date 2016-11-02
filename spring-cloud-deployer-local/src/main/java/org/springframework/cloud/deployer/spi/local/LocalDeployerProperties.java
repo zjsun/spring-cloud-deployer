@@ -50,7 +50,7 @@ public class LocalDeployerProperties {
 	 * Array of regular expression patterns for environment variables that
 	 * should be passed to launched applications.
 	 */
-	private String[] envVarsToInherit = { "TMP", "LANG", "LANGUAGE", "LC_.*" };
+	private String[] envVarsToInherit = { "TMP", "LANG", "LANGUAGE", "LC_.*", "PATH" };
 
 	/**
 	 * The command to run java.
