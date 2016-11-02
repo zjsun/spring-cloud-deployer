@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.springframework.cglib.core.Local;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
@@ -40,7 +42,7 @@ import org.springframework.web.client.RestTemplate;
  */
 public abstract class AbstractLocalDeployerSupport {
 
-	private static final Logger logger = LoggerFactory.getLogger(LocalAppDeployer.class);
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private final LocalDeployerProperties properties;
 

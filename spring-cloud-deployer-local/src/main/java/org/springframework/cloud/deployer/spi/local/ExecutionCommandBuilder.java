@@ -21,13 +21,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.springframework.cloud.deployer.spi.local.LocalDeployerProperties.LOCAL_PROPERTIES;
+import static org.springframework.cloud.deployer.spi.local.LocalDeployerProperties.PREFIX;
 
 /**
  * A class to help create the execution command for launching a Java Process.
@@ -72,7 +71,7 @@ public class ExecutionCommandBuilder {
         if (containsKey(deploymentProperties, MAIN) || containsKey(deploymentProperties, CLASSPATH)) {
             Assert.isTrue(containsKey(deploymentProperties, MAIN)
                             && containsKey(deploymentProperties, CLASSPATH),
-                    LOCAL_PROPERTIES + "." + MAIN + " and " + LOCAL_PROPERTIES + "." + CLASSPATH +
+                    PREFIX + "." + MAIN + " and " + PREFIX + "." + CLASSPATH +
                             " deployment properties are both required if either is provided.");
             commands.add("-cp");
             commands.add(getValue(deploymentProperties, CLASSPATH));
@@ -91,10 +90,10 @@ public class ExecutionCommandBuilder {
     }
 
     private boolean containsKey(Map<String, String> deploymentProperties, String propertyName) {
-        return deploymentProperties.containsKey(LOCAL_PROPERTIES + "." + propertyName);
+        return deploymentProperties.containsKey(PREFIX + "." + propertyName);
     }
 
     private String getValue(Map<String, String> deploymentProperties, String propertyName) {
-        return deploymentProperties.get(LOCAL_PROPERTIES + "." + propertyName);
+        return deploymentProperties.get(PREFIX + "." + propertyName);
     }
 }

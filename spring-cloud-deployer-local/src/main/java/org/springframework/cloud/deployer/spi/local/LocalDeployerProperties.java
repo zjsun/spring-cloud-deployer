@@ -28,13 +28,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-@ConfigurationProperties(prefix = LocalDeployerProperties.LOCAL_PROPERTIES)
+@ConfigurationProperties(prefix = LocalDeployerProperties.PREFIX)
 public class LocalDeployerProperties {
 
 	/**
 	 * Top level prefix for local deployer configuration properties.
 	 */
-	public static final String LOCAL_PROPERTIES = "spring.cloud.deployer.local";
+	public static final String PREFIX = "spring.cloud.deployer.local";
 
 	/**
 	 * Directory in which all created processes will run and create log files.

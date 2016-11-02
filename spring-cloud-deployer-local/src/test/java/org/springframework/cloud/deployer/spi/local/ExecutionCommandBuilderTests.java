@@ -15,13 +15,11 @@
  */
 package org.springframework.cloud.deployer.spi.local;
 
-import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.cloud.deployer.resource.maven.MavenResource;
+
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -32,15 +30,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
-import static org.springframework.cloud.deployer.spi.local.LocalDeployerProperties.LOCAL_PROPERTIES;
+import static org.springframework.cloud.deployer.spi.local.LocalDeployerProperties.PREFIX;
 
 public class ExecutionCommandBuilderTests {
 
@@ -65,7 +61,7 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testDirectJavaMemoryOption() {
-        deploymentProperties.put(LOCAL_PROPERTIES + ".memory", "1024m");
+        deploymentProperties.put(PREFIX + ".memory", "1024m");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(1));
         assertThat(args.get(0), is("-Xmx1024m"));
@@ -73,7 +69,7 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testJavaMemoryOption() {
-        deploymentProperties.put(LOCAL_PROPERTIES + ".javaOpts", "-Xmx1024m");
+        deploymentProperties.put(PREFIX + ".javaOpts", "-Xmx1024m");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(1));
         assertThat(args.get(0), is("-Xmx1024m"));
@@ -81,8 +77,8 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testOverrideMemoryOptions() {
-        deploymentProperties.put(LOCAL_PROPERTIES + ".memory", "1024m");
-        deploymentProperties.put(LOCAL_PROPERTIES + ".javaOpts", "-Xmx2048m");
+        deploymentProperties.put(PREFIX + ".memory", "1024m");
+        deploymentProperties.put(PREFIX + ".javaOpts", "-Xmx2048m");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(1));
         assertThat(args.get(0), is("-Xmx2048m"));
@@ -90,8 +86,8 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testDirectMemoryOptionsWithOtherOptions() {
-        deploymentProperties.put(LOCAL_PROPERTIES + ".memory", "1024m");
-        deploymentProperties.put(LOCAL_PROPERTIES + ".javaOpts", "-Dtest=foo");
+        deploymentProperties.put(PREFIX + ".memory", "1024m");
+        deploymentProperties.put(PREFIX + ".javaOpts", "-Dtest=foo");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(2));
         assertThat(args.get(0), is("-Xmx1024m"));
@@ -100,7 +96,7 @@ public class ExecutionCommandBuilderTests {
 
     @Test
     public void testMultipleOptions() {
-        deploymentProperties.put(LOCAL_PROPERTIES + ".javaOpts", "-Dtest=foo -Dbar=baz");
+        deploymentProperties.put(PREFIX + ".javaOpts", "-Dtest=foo -Dbar=baz");
         commandBuilder.addJavaOptions(args, deploymentProperties, localDeployerProperties);
         assertThat(args.size(), is(2));
         assertThat(args.get(0), is("-Dtest=foo"));
@@ -120,7 +116,7 @@ public class ExecutionCommandBuilderTests {
     @Test
     public void testJarExecution() throws MalformedURLException {
         AppDefinition definition = new AppDefinition("randomApp", new HashMap<>());
-        deploymentProperties.put(LOCAL_PROPERTIES + ".javaOpts", "-Dtest=foo -Dbar=baz");
+        deploymentProperties.put(PREFIX + ".javaOpts", "-Dtest=foo -Dbar=baz");
         AppDeploymentRequest appDeploymentRequest =
                 new AppDeploymentRequest(definition, testResource(), deploymentProperties);
         commandBuilder.addJavaExecutionOptions(args, appDeploymentRequest);
@@ -132,7 +128,7 @@ public class ExecutionCommandBuilderTests {
     @Test(expected = IllegalStateException.class)
     public void testBadResourceExecution() throws MalformedURLException {
         AppDefinition definition = new AppDefinition("randomApp", new HashMap<>());
-        deploymentProperties.put(LOCAL_PROPERTIES + ".javaOpts", "-Dtest=foo -Dbar=baz");
+        deploymentProperties.put(PREFIX + ".javaOpts", "-Dtest=foo -Dbar=baz");
         AppDeploymentRequest appDeploymentRequest =
                 new AppDeploymentRequest(definition, new UrlResource("http://spring.io"), deploymentProperties);
         commandBuilder.addJavaExecutionOptions(args, appDeploymentRequest);
@@ -143,8 +139,8 @@ public class ExecutionCommandBuilderTests {
         String mainApp = "org.foo.Main";
         String mainJar = "/tmp/myapp.jar";
         AppDefinition definition = new AppDefinition("randomApp", new HashMap<>());
-        deploymentProperties.put(LOCAL_PROPERTIES + ".main", mainApp);
-        deploymentProperties.put(LOCAL_PROPERTIES + ".classpath", mainJar);
+        deploymentProperties.put(PREFIX + ".main", mainApp);
+        deploymentProperties.put(PREFIX + ".classpath", mainJar);
         AppDeploymentRequest appDeploymentRequest =
                 new AppDeploymentRequest(definition, testResource(), deploymentProperties);
         commandBuilder.addJavaExecutionOptions(args, appDeploymentRequest);
@@ -158,7 +154,7 @@ public class ExecutionCommandBuilderTests {
     public void testMissingMain() throws MalformedURLException {
         String mainJar = "/tmp/myapp.jar";
         AppDefinition definition = new AppDefinition("randomApp", new HashMap<>());
-        deploymentProperties.put(LOCAL_PROPERTIES + ".classpath", mainJar);
+        deploymentProperties.put(PREFIX + ".classpath", mainJar);
         AppDeploymentRequest appDeploymentRequest =
                 new AppDeploymentRequest(definition, testResource(), deploymentProperties);
         commandBuilder.addJavaExecutionOptions(args, appDeploymentRequest);
