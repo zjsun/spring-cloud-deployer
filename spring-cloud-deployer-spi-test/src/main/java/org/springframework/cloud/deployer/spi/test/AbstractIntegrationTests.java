@@ -39,6 +39,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -46,11 +47,15 @@ import org.springframework.test.context.junit4.SpringRunner;
  * {@link org.springframework.cloud.deployer.spi.app.AppDeployer} and
  * {@link org.springframework.cloud.deployer.spi.task.TaskLauncher} tests.
  *
+ * <p>Subclasses should explicitly declare additional config that should be used via the use of
+ * {@linkg ContextConfiguration}.</p>
+ *
  * @author Eric Bottard
  */
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= NONE)
+@ContextConfiguration(classes = AbstractIntegrationTests.Config.class)
 public abstract class AbstractIntegrationTests {
 
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -58,7 +63,7 @@ public abstract class AbstractIntegrationTests {
 	@Rule
 	public TestName name = new TestName();
 
-	@Autowired(required = false)
+	@Autowired
 	protected MavenProperties mavenProperties;
 
 	// No duplicates, but keep insertion order
