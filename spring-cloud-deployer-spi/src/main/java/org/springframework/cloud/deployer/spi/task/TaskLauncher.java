@@ -78,9 +78,12 @@ public interface TaskLauncher {
 	 * associated with the task launch. Implementations may perform this operation asynchronously; therefore a
 	 * successful clean up may not be assumed upon return.
 	 *
+	 * @implSpec
+	 * The default implementation is empty and does nothing.
+	 *
 	 * @param id the task id, as returned by {@link #launch(AppDeploymentRequest)}
 	 */
-	void cleanup(String id);
+	default void cleanup(String id) {}
 
 	/**
 	 * Attempt to clean up any resources that are associated with a launched task app represented by the provided appName.
@@ -89,8 +92,11 @@ public interface TaskLauncher {
 	 * associated with the task app. Implementations may perform this operation asynchronously; therefore a
 	 * successful clean up may not be assumed upon return.
 	 *
+	 * @implSpec
+	 * The default implementation is empty and does nothing.
+	 *
 	 * @param appName the app name as specified in {@link org.springframework.cloud.deployer.spi.core.AppDefinition#name}
 	 *                from the {@link #launch(AppDeploymentRequest)}
 	 */
-	void destroy(String appName);
+	default void destroy(String appName) {}
 }
