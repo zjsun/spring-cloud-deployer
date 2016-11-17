@@ -68,10 +68,31 @@ public interface AppDeployer {
 
 	/**
 	 * The deployment property for the memory setting for the container that will run the app.
-	 * The memory is specified in megabytes with optional trailing 'm' like '1024m'. How this property
-	 * affects the deployments will vary between implementations.
+	 * The memory is specified in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>,
+	 * by default, with optional case-insensitive trailing unit 'm' and 'g' being supported,
+	 * for mebi- and giga- respectively.
+	 * <p>
+	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes = 1000*1000 bytes,
+	 * <p>
+	 * Implementations are expected to translate this value to the target platform as faithfully as possible.
+	 *
+	 * @see org.springframework.cloud.deployer.spi.util.ByteSizeUtils
 	 */
 	static final String MEMORY_PROPERTY_KEY = PREFIX + "memory";
+
+	/**
+	 * The deployment property for the disk setting for the container that will run the app.
+	 * The memory is specified in <a href="https://en.wikipedia.org/wiki/Mebibyte">Mebibytes</a>,
+	 * by default, with optional case-insensitive trailing unit 'm' and 'g' being supported,
+	 * for mebi- and giga- respectively.
+	 * <p>
+	 * 1 MiB = 2^20 bytes = 1024*1024 bytes vs. the decimal based 1MB = 10^6 bytes = 1000*1000 bytes,
+	 * <p>
+	 * Implementations are expected to translate this value to the target platform as faithfully as possible.
+	 *
+	 * @see org.springframework.cloud.deployer.spi.util.ByteSizeUtils
+	 */
+	static final String DISK_PROPERTY_KEY = PREFIX + "disk";
 
 	/**
 	 * The deployment property for the cpu setting for the container that will run the app.
