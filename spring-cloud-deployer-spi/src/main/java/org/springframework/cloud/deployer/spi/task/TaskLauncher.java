@@ -83,7 +83,7 @@ public interface TaskLauncher {
 	 *
 	 * @param id the task id, as returned by {@link #launch(AppDeploymentRequest)}
 	 */
-	default void cleanup(String id) {}
+	void cleanup(String id);
 
 	/**
 	 * Attempt to clean up any resources that are associated with a launched task app represented by the provided appName.
@@ -98,5 +98,5 @@ public interface TaskLauncher {
 	 * @param appName the app name as specified in {@link org.springframework.cloud.deployer.spi.core.AppDefinition#name}
 	 *                from the {@link #launch(AppDeploymentRequest)}
 	 */
-	default void destroy(String appName) {}
+	void destroy(String appName);
 }
