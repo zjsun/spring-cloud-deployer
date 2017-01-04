@@ -23,7 +23,7 @@
 		<spring-framework.version>4.3.3.RELEASE</spring-framework.version>
 		<spring-cloud.version>Camden.SR2</spring-cloud.version>
 		<aether.version>1.0.2.v20150114</aether.version>
-		<maven.version>3.1.0</maven.version>
+		<maven.version>3.2.1</maven.version>
 	</properties>
 
 	<modules>
