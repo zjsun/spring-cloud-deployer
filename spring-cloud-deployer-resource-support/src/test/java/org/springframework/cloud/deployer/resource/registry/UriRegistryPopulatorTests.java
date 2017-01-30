@@ -30,7 +30,6 @@ import java.util.Properties;
 
 import org.junit.Test;
 
-import org.springframework.cloud.deployer.resource.StubResourceLoader;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 
@@ -51,15 +50,8 @@ public class UriRegistryPopulatorTests {
 
 	@Test
 	public void populateRegistry() throws Exception {
-		String localUri = "local://local";
-		UriRegistryPopulator populator = new UriRegistryPopulator();
-		StubResourceLoader resourceLoader = new StubResourceLoader(new PropertiesResource(uris));
-		populator.setResourceLoader(resourceLoader);
-
 		UriRegistry registry = new InMemoryUriRegistry();
-		populator.populateRegistry(true, registry, localUri);
-		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
-		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
+		UriRegistryPopulator.populateRegistry(true, registry, new PropertiesResource(uris));
 		assertThat(registry.findAll().size(), is(this.uris.size()));
 		for (String key : this.uris.stringPropertyNames()) {
 			assertThat(registry.find(key).toString(), is(this.uris.getProperty(key)));
@@ -79,42 +71,32 @@ public class UriRegistryPopulatorTests {
 
 	@Test
 	public void populateRegistryWithOverwrites() throws Exception {
-		String localUri = "local://local";
-		UriRegistryPopulator populator = new UriRegistryPopulator();
 		PropertiesResource propertiesResource = new PropertiesResource(uris);
-		StubResourceLoader resourceLoader = new StubResourceLoader(propertiesResource);
-		populator.setResourceLoader(resourceLoader);
 		UriRegistry registry = new InMemoryUriRegistry();
-		Map<String, URI> registered = populator.populateRegistry(true, registry, localUri);
+		Map<String, URI> registered = UriRegistryPopulator.populateRegistry(true, registry, propertiesResource);
 		assertTrue(registered.size() == 3);
 		// Perform overwrites on the existing keys
-		Map<String, URI> registeredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
+		Map<String, URI> registeredWithNoOverwrites = UriRegistryPopulator.populateRegistry(false, registry, propertiesResource);
 		assertTrue(registeredWithNoOverwrites.size() == 0);
 		propertiesResource.addNewProperty("another", "maven://somegroup:someartifact:jar:exec:1.0.0");
-		Map<String, URI> newlyRegisteredWithNoOverwrites = populator.populateRegistry(false, registry, localUri);
+		Map<String, URI> newlyRegisteredWithNoOverwrites = UriRegistryPopulator.populateRegistry(false, registry, propertiesResource);
 		assertTrue(newlyRegisteredWithNoOverwrites.size() == 1);
 		propertiesResource.addNewProperty("yet-another", "file:///tmp/yet-another.jar");
-		Map<String, URI> newlyRegisteredWithOverwrites = populator.populateRegistry(true, registry, localUri);
+		Map<String, URI> newlyRegisteredWithOverwrites = UriRegistryPopulator.populateRegistry(true, registry, propertiesResource);
 		assertTrue(newlyRegisteredWithOverwrites.size() == 5);
 	}
 
 	@Test
 	public void populateRegistryInvalidUri() throws Exception {
-		String localUri = "local://local";
 		Properties props = new Properties();
 		props.setProperty("test", "file:///bar-1.2.3.jar");
-		UriRegistryPopulator populator = new UriRegistryPopulator();
-		StubResourceLoader resourceLoader = new StubResourceLoader(new PropertiesResource(props));
-		populator.setResourceLoader(resourceLoader);
 		UriRegistry registry = new InMemoryUriRegistry();
-		populator.populateRegistry(true, registry, localUri);
-		assertTrue(resourceLoader.getRequestedLocations().contains(localUri));
-		assertThat(resourceLoader.getRequestedLocations().size(), is(1));
+		UriRegistryPopulator.populateRegistry(true, registry, new PropertiesResource(props));
 		assertThat(registry.findAll().size(), is(1));
 		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));
-		populator.populateRegistry(true, registry, localUri);
+		UriRegistryPopulator.populateRegistry(true, registry, new PropertiesResource(props));
 		props.setProperty("test", "invalid");
-		populator.populateRegistry(true, registry, localUri);
+		UriRegistryPopulator.populateRegistry(true, registry, new PropertiesResource(props));
 		assertThat(registry.find("test").toString(), is("file:///bar-1.2.3.jar"));
 	}
 

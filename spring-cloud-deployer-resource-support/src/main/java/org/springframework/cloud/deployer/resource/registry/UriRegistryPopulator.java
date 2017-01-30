@@ -27,48 +27,43 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Utility class for populating a {@link UriRegistry} via a
- * {@link Properties} file. One or more URI strings indicating the
- * location of property files is supplied via the constructor,
- * and the files themselves are loaded via the {@link Resource}
- * provided by {@link #resourceLoader}.
+ * {@link Properties} file.
  *
  * @author Patrick Peralta
  * @author Ilayaperumal Gopinathan
+ * @author Eric Bottard
+ *
+ * @deprecated This class is likely to be removed/moved in the near future and should not be considered part of the
+ * public API of Spring Cloud Deployer
  */
-public class UriRegistryPopulator implements ResourceLoaderAware {
+@Deprecated
+public class UriRegistryPopulator {
+
+	private UriRegistryPopulator() {
+
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(UriRegistryPopulator.class);
 
-	private volatile ResourceLoader resourceLoader;
-
-
-	@Override
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
-
 	/**
 	 * Populate the provided registry with the contents of
-	 * the property files indicated by {@code resourceUris}.
+	 * the property files indicated by {@code resources}.
 	 *
 	 * @param overwrite    if {@code true}, overwrites any pre-existing registrations with the same key
 	 * @param registry     the registry to populate
-	 * @param resourceUris string(s) indicating the URIs to load properties from
+	 * @param resources    spring resources pointing to properties files to read
 	 * @return the registered URI values in the map with the keys being the property names
 	 */
-	public Map<String, URI> populateRegistry(boolean overwrite, UriRegistry registry, String... resourceUris) {
-		Assert.notEmpty(resourceUris);
+	public static Map<String, URI> populateRegistry(boolean overwrite, UriRegistry registry, Resource... resources) {
+		Assert.notEmpty(resources);
 		Map<String, URI> registered = new HashMap<>();
-		for (String resourceUri : resourceUris) {
-			Resource resource = this.resourceLoader.getResource(resourceUri);
+		for (Resource resource : resources) {
 			Properties properties = new Properties();
 			try (InputStream is = resource.getInputStream()) {
 				properties.load(is);
