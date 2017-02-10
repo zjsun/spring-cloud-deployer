@@ -105,7 +105,7 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 						}
 					}
 					catch (URISyntaxException e) {
-						logger.warn(String.format("'%s' for '%s' is not a properly formed URI",
+						throw new IllegalArgumentException(String.format("'%s' for '%s' is not a properly formed URI",
 								properties.getProperty(key), key), e);
 					}
 				}
