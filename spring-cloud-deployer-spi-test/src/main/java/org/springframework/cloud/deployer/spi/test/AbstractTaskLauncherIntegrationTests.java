@@ -24,13 +24,16 @@ import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.even
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
@@ -61,7 +64,51 @@ import org.springframework.core.io.Resource;
 public abstract class AbstractTaskLauncherIntegrationTests extends AbstractIntegrationTests {
 
 
-	protected abstract TaskLauncher taskLauncher();
+	private TaskLauncherWrapper launcherWrapper;
+
+	/**
+	 * To be implemented by subclasses, which should return the instance of TaskLauncher that needs
+	 * to be tested. If subclasses decide to add additional implementation-specific tests, they should
+	 * interact with the task launcher through {@link #taskLauncher()}, and not directly via a field or a call
+	 * to this method.
+	 */
+	protected abstract TaskLauncher provideTaskLauncher();
+
+	/**
+	 * Subclasses should call this method to interact with the AppDeployer under test.
+	 * Returns a wrapper around the deployer returned by {@link #provideTaskLauncher()}, that keeps
+	 * track of which apps have been deployed and undeployed.
+	 */
+	protected TaskLauncher taskLauncher() {
+		return launcherWrapper;
+	}
+
+
+	@Before
+	public void wrapDeployer() {
+		launcherWrapper = new TaskLauncherWrapper(provideTaskLauncher());
+	}
+
+	@After
+	public void cleanupLingeringApps() {
+		for (String id : launcherWrapper.launchedTasks) {
+			try {
+				launcherWrapper.wrapped.cleanup(id);
+			}
+			catch (Exception e) {
+				log.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
+			}
+		}
+		for (String appName : launcherWrapper.deployedApps) {
+			try {
+				log.warn("Test named '{}' left behind an app for ''. Trying to destroy.", name.getMethodName(), appName);
+				launcherWrapper.wrapped.destroy(appName);
+			}
+			catch (Exception e) {
+				log.warn("Exception caught while trying to destroy '{}'. Moving on...", appName);
+			}
+		}
+	}
 
 	@Test
 	public void testNonExistentAppsStatus() {
@@ -79,7 +126,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		log.info("Launching {}...", request.getDefinition().getName());
-		String launchId = record(taskLauncher().launch(request));
+		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
 		assertThat(launchId, eventually(hasStatusThat(
@@ -98,14 +145,14 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		log.info("Launching {}...", request.getDefinition().getName());
-		String launchId = record(taskLauncher().launch(request));
+		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
 		assertThat(launchId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 
 		log.info("Re-Launching {}...", request.getDefinition().getName());
-		String newLaunchId = record(taskLauncher().launch(request));
+		String newLaunchId = taskLauncher().launch(request);
 
 		assertThat(newLaunchId, not(is(launchId)));
 
@@ -126,7 +173,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		log.info("Launching {}...", request.getDefinition().getName());
-		String launchId = record(taskLauncher().launch(request));
+		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
 		assertThat(launchId, eventually(hasStatusThat(
@@ -145,7 +192,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource);
 
 		log.info("Launching {}...", request.getDefinition().getName());
-		String launchId = record(taskLauncher().launch(request));
+		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
 		assertThat(launchId, eventually(hasStatusThat(
@@ -173,21 +220,13 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, Collections.<String, String>emptyMap(),
 				Collections.singletonList("--exitCode=0"));
 		log.info("Launching {}...", request.getDefinition().getName());
-		String deploymentId = record(taskLauncher().launch(request));
+		String deploymentId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(complete))), timeout.maxAttempts, timeout.pause));
 		taskLauncher().destroy(definition.getName());
 	}
-
-	@After
-	public void cleanUp() {
-		for (String id : deployments) {
-			taskLauncher().cleanup(id);
-		}
-	}
-
 
 	/**
 	 * A Hamcrest Matcher that queries the deployment status for some task id.
@@ -216,6 +255,56 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 			}
 		};
 	}
+
+	/**
+	 * A decorator for TaskLauncher that keeps track of deployed/undeployed apps.
+	 *
+	 * @author Eric Bottard
+	 */
+	protected static class TaskLauncherWrapper implements TaskLauncher {
+		private final TaskLauncher wrapped;
+
+		private final Set<String> deployedApps = new LinkedHashSet<>();
+
+		private final Set<String> launchedTasks = new LinkedHashSet<>();
+
+		public TaskLauncherWrapper(TaskLauncher wrapped) {
+			this.wrapped = wrapped;
+		}
+
+		@Override
+		public String launch(AppDeploymentRequest request) {
+			String launchId = wrapped.launch(request);
+			deployedApps.add(request.getDefinition().getName());
+			launchedTasks.add(launchId);
+			return launchId;
+		}
+
+		@Override
+		public void cancel(String id) {
+			wrapped.cancel(id);
+		}
+
+		@Override
+		public TaskStatus status(String id) {
+			return wrapped.status(id);
+		}
+
+		@Override
+		public void cleanup(String id) {
+			wrapped.cleanup(id);
+			launchedTasks.remove(id);
+		}
+
+		@Override
+		public void destroy(String appName) {
+			wrapped.destroy(appName);
+			deployedApps.remove(appName);
+		}
+
+
+	}
+
 
 }
 

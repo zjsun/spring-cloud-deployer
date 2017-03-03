@@ -30,13 +30,17 @@ import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.even
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.cloud.deployer.spi.app.AppDeployer;
@@ -70,7 +74,42 @@ import org.springframework.core.io.Resource;
  */
 public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegrationTests {
 
-	protected abstract AppDeployer appDeployer();
+	private AppDeployerWrapper deployerWrapper;
+
+	/**
+	 * To be implemented by subclasses, which should return the instance of AppDeployer that needs
+	 * to be tested. If subclasses decide to add additional implementation-specific tests, they should
+	 * interact with the deployer through {@link #appDeployer()}, and not directly via a field or a call
+	 * to this method.
+	 */
+	protected abstract AppDeployer provideAppDeployer();
+
+	/**
+	 * Subclasses should call this method to interact with the AppDeployer under test.
+	 * Returns a wrapper around the deployer returned by {@link #provideAppDeployer()}, that keeps
+	 * track of which apps have been deployed and undeployed.
+	 */
+	protected AppDeployer appDeployer() {
+		return deployerWrapper;
+	}
+
+	@Before
+	public void wrapDeployer() {
+		deployerWrapper = new AppDeployerWrapper(provideAppDeployer());
+	}
+
+	@After
+	public void cleanupLingeringApps() {
+		for (String id : deployerWrapper.deployments) {
+			try {
+				log.warn("Test named {} left behind an app for deploymentId '{}', trying to cleanup", name.getMethodName(), id);
+				deployerWrapper.wrapped.undeploy(id);
+			}
+			catch (Exception e) {
+				log.warn("Exception caught while trying to cleanup '{}'. Moving on...", id);
+			}
+		}
+	}
 
 	@Test
 	public void testUnknownDeployment() {
@@ -93,7 +132,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -133,7 +172,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -156,7 +195,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		log.info("Deploying {} again...", request.getDefinition().getName());
 
 		// Attempt re-deploy of SAME request
-		deploymentId = record(appDeployer().deploy(request));
+		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -184,7 +223,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deploying))), timeout.maxAttempts, timeout.pause));
@@ -208,7 +247,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
@@ -238,7 +277,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -259,7 +298,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
-		deploymentId = record(appDeployer().deploy(request));
+		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
@@ -288,7 +327,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
@@ -311,7 +350,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}, expecting it to fail...", request.getDefinition().getName());
 
-		deploymentId = record(appDeployer().deploy(request));
+		deploymentId = appDeployer().deploy(request);
 		timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(failed))), timeout.maxAttempts, timeout.pause));
@@ -343,7 +382,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Deploying {}...", request.getDefinition().getName());
 
-		String deploymentId = record(appDeployer().deploy(request));
+		String deploymentId = appDeployer().deploy(request);
 		Timeout timeout = deploymentTimeout();
 		assertThat(deploymentId, eventually(hasStatusThat(
 				Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
@@ -397,6 +436,42 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 			}
 		};
 	}
+
+	/**
+	 * A decorator for AppDeployer that keeps track of deployed/undeployed apps.
+	 *
+	 * @author Eric Bottard
+	 */
+	protected static class AppDeployerWrapper implements AppDeployer {
+
+		private final AppDeployer wrapped;
+
+		private final Set<String> deployments = new LinkedHashSet<>();
+
+		public AppDeployerWrapper(AppDeployer wrapped) {
+			this.wrapped = wrapped;
+		}
+
+		@Override
+		public String deploy(AppDeploymentRequest request) {
+			String deploymentId = wrapped.deploy(request);
+			deployments.add(deploymentId);
+			return deploymentId;
+		}
+
+		@Override
+		public void undeploy(String id) {
+			wrapped.undeploy(id);
+			deployments.remove(id);
+		}
+
+		@Override
+		public AppStatus status(String id) {
+			return wrapped.status(id);
+		}
+
+	}
+
 
 }
 

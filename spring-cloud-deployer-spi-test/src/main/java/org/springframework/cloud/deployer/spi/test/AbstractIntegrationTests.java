@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Rule;
@@ -66,22 +64,8 @@ public abstract class AbstractIntegrationTests {
 	@Autowired
 	protected MavenProperties mavenProperties;
 
-	// No duplicates, but keep insertion order
-	protected Set<String> deployments = new LinkedHashSet<>();
-
 	protected String randomName() {
 		return name.getMethodName() + "-" + UUID.randomUUID().toString();
-	}
-
-	/**
-	 * Record the fact that something was deployed, resulting in the given deployment id.
-	 * Useful for cleaning up resources in an implementation-specific way in subclasses.
-	 *
-	 * @return the deployment id, for chaining calls.
-	 */
-	protected String record(String deployment) {
-		deployments.add(deployment);
-		return deployment;
 	}
 
 	/**
