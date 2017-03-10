@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ import org.junit.Test;
 public class MavenResourceTests {
 
 	@Test
-	public void mavenResourceFilename() {
+	public void mavenResourceFilename() throws IOException {
 		MavenResource resource = new MavenResource.Builder()
 				.artifactId("timestamp-task")
 				.groupId("org.springframework.cloud.task.app")
@@ -45,6 +46,9 @@ public class MavenResourceTests {
 		assertNotNull("getFilename() returned null", resource.getFilename());
 		assertEquals("getFilename() doesn't match the expected filename",
 				"timestamp-task-1.0.0.BUILD-SNAPSHOT.jar", resource.getFilename());
+		assertEquals("getURI doesn't match the expected URI",
+				"maven://org.springframework.cloud.task.app:timestamp-task:jar:1.0.0.BUILD-SNAPSHOT",
+				resource.getURI().toString());
 	}
 
 	@Test
