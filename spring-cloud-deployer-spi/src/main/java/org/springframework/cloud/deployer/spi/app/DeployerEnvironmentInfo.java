@@ -36,6 +36,11 @@ public class DeployerEnvironmentInfo {
 	private String deployerSpiVersion;
 
 	/**
+	 * The name of this deployer (could be simple class name).
+	 */
+	private String deployerName;
+
+	/**
 	 * The implementation version of this deployer.
 	 */
 	private String deployerImplementationVersion;
@@ -44,6 +49,11 @@ public class DeployerEnvironmentInfo {
 	 * The deployment platform for this deployer.
 	 */
 	private String platformType;
+
+	/**
+	 * The deployment platform API for this deployer.
+	 */
+	private String platformApiVersion;
 
 	/**
 	 * The client library version used by this deployer.
@@ -75,15 +85,20 @@ public class DeployerEnvironmentInfo {
 	 */
 	private Map<String, String> platformSpecificInfo = new HashMap<>();
 
-	private DeployerEnvironmentInfo(String deployerImplementationVersion, String platformType,
-			String platformClientVersion, String platformHostVersion, Map<String, String> platformSpecificInfo) {
+	private DeployerEnvironmentInfo(String deployerName, String deployerImplementationVersion,
+			String platformType, String platformApiVersion, String platformClientVersion,
+            String platformHostVersion, Map<String, String> platformSpecificInfo) {
+		Assert.notNull(deployerName, "deployerName is required");
 		Assert.notNull(deployerImplementationVersion, "deployerImplementationVersion is required");
 		Assert.notNull(platformType, "platformType is required");
+		Assert.notNull(platformApiVersion, "platformApiVersion is required");
 		Assert.notNull(platformClientVersion, "platformClientVersion is required");
 		Assert.notNull(platformHostVersion, "platformHostVersion is required");
 		this.deployerSpiVersion = DeployerVersionUtils.getVersion(AppDeployer.class);
+		this.deployerName = deployerName;
 		this.deployerImplementationVersion = deployerImplementationVersion;
 		this.platformType = platformType;
+		this.platformApiVersion = platformApiVersion;
 		this.platformClientVersion = platformClientVersion;
 		this.platformHostVersion = platformHostVersion;
 		this.javaVersion = System.getProperty("java.version");
@@ -96,12 +111,20 @@ public class DeployerEnvironmentInfo {
 		return deployerSpiVersion;
 	}
 
+	public String getDeployerName() {
+		return deployerName;
+	}
+
 	public String getDeployerImplementationVersion() {
 		return deployerImplementationVersion;
 	}
 
 	public String getPlatformType() {
 		return platformType;
+	}
+
+	public String getPlatformApiVersion() {
+		return platformApiVersion;
 	}
 
 	public String getPlatformClientVersion() {
@@ -130,9 +153,13 @@ public class DeployerEnvironmentInfo {
 
 	public static class Builder {
 
+		private String deployerName;
+
 		private String deployerImplementationVersion;
 
 		private String platformType;
+
+		private String platformApiVersion;
 
 		private String platformClientVersion;
 
@@ -143,6 +170,11 @@ public class DeployerEnvironmentInfo {
 		public Builder() {
 		}
 
+		public Builder deployerName(String deployerName) {
+			this.deployerName = deployerName;
+			return this;
+		}
+
 		public Builder deployerImplementationVersion(String deployerImplementationVersion) {
 			this.deployerImplementationVersion = deployerImplementationVersion;
 			return this;
@@ -150,6 +182,11 @@ public class DeployerEnvironmentInfo {
 
 		public Builder platformType(String platformType) {
 			this.platformType = platformType;
+			return this;
+		}
+
+		public Builder platformApiVersion(String platformApiVersion) {
+			this.platformApiVersion = platformApiVersion;
 			return this;
 		}
 
@@ -169,8 +206,8 @@ public class DeployerEnvironmentInfo {
 		}
 
 		public DeployerEnvironmentInfo build() {
-			return new DeployerEnvironmentInfo(deployerImplementationVersion, platformType,
-					platformClientVersion, platformHostVersion, platformSpecificInfo);
+			return new DeployerEnvironmentInfo(deployerName, deployerImplementationVersion, platformType,
+					platformApiVersion, platformClientVersion, platformHostVersion, platformSpecificInfo);
 		}
 	}
 }

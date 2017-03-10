@@ -32,15 +32,19 @@ public class DeployerEnvironmentInfoBuilderTests {
 	@Test
 	public void testCreatingDeployerEnvironmentInfo() {
 		DeployerEnvironmentInfo dei = new DeployerEnvironmentInfo.Builder()
+				.deployerName("testDeployer")
 				.deployerImplementationVersion("1.0.0")
 				.platformClientVersion("1.2.0")
 				.platformHostVersion("1.1.0")
 				.platformType("Test")
+				.platformApiVersion("1")
 				.addPlatformSpecificInfo("foo", "bar")
 				.build();
 		assertThat(dei.getDeployerSpiVersion(), is(DeployerVersionUtils.getVersion(AppDeployer.class)));
+		assertThat(dei.getDeployerName(), is("testDeployer"));
 		assertThat(dei.getDeployerImplementationVersion(), is("1.0.0"));
 		assertThat(dei.getPlatformType(), is("Test"));
+		assertThat(dei.getPlatformApiVersion(), is("1"));
 		assertThat(dei.getPlatformClientVersion(), is("1.2.0"));
 		assertThat(dei.getPlatformHostVersion(), is("1.1.0"));
 		assertThat(dei.getJavaVersion(), is(System.getProperty("java.version")));
