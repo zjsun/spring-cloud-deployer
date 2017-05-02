@@ -276,14 +276,14 @@ class MavenArtifactResolver {
 			final StringBuilder errorMessage = new StringBuilder("failed to resolve MavenResource: %s. Configured remote ");
 
 			if (properties.getRemoteRepositories().size() > 1) {
-				errorMessage.append("repositories: ");
+				errorMessage.append("repositories: [");
 			}
 			else {
-				errorMessage.append("repository: ");
+				errorMessage.append("repository: [");
 			}
 
 			errorMessage.append(StringUtils.collectionToCommaDelimitedString(properties.getRemoteRepositories().keySet()));
-
+			errorMessage.append("]");
 			throw new IllegalStateException(
 					String.format(errorMessage.toString(), resource.toString()), e);
 		}
