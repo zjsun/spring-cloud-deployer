@@ -17,7 +17,10 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
+import java.text.ChoiceFormat;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -273,19 +276,19 @@ class MavenArtifactResolver {
 			resolvedArtifact = results.get(results.size() - 1);
 		}
 		catch (ArtifactResolutionException e) {
-			final StringBuilder errorMessage = new StringBuilder("failed to resolve MavenResource: %s. Configured remote ");
 
-			if (properties.getRemoteRepositories().size() > 1) {
-				errorMessage.append("repositories: [");
-			}
-			else {
-				errorMessage.append("repository: [");
-			}
-
-			errorMessage.append(StringUtils.collectionToCommaDelimitedString(properties.getRemoteRepositories().keySet()));
-			errorMessage.append("]");
+			ChoiceFormat pluralizer = new ChoiceFormat(
+				new double[] {0d, 1d, ChoiceFormat.nextDouble(1d)},
+				new String[] {"repositories: ", "repository: ", "repositories: "}
+			);
+			MessageFormat messageFormat = new MessageFormat("Failed to resolve MavenResource: {0}. Configured remote {1}: {2}");
+			messageFormat.setFormat(1, pluralizer);
+			String repos = properties.getRemoteRepositories().isEmpty()
+				? "none"
+				: StringUtils.collectionToDelimitedString(properties.getRemoteRepositories().keySet(),",", "[", "]");
 			throw new IllegalStateException(
-					String.format(errorMessage.toString(), resource.toString()), e);
+					messageFormat.format(new Object[] { resource, properties.getRemoteRepositories().size(), repos }),
+					e);
 		}
 		return toResource(resolvedArtifact);
 	}
