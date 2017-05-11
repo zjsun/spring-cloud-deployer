@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.io.Resource;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 
 /**
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
+ * @author Oleg Zhurakousky
  */
 public class AppDeploymentRequest {
 
@@ -136,5 +138,15 @@ public class AppDeploymentRequest {
 	 */
 	public List<String> getCommandlineArguments() {
 		return commandlineArguments;
+	}
+
+	@Override
+	public String toString(){
+		return new ToStringCreator(this)
+				.append("commandlineArguments", this.commandlineArguments)
+				.append("deploymentProperties", this.deploymentProperties)
+				.append("definition", this.definition)
+				.append("resource", this.resource)
+				.toString();
 	}
 }
