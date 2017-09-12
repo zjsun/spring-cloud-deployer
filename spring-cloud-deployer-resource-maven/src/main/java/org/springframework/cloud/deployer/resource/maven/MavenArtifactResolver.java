@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.io.File;
 import java.text.ChoiceFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,7 @@ import org.eclipse.aether.repository.AuthenticationDigest;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
@@ -111,10 +111,29 @@ class MavenArtifactResolver {
 			Assert.isTrue(created || localRepository.exists(),
 					"Unable to create directory for local repository: " + localRepository);
 		}
-		for (Map.Entry<String, MavenProperties.RemoteRepository> entry: this.properties.getRemoteRepositories().entrySet()) {
+		for (Map.Entry<String, MavenProperties.RemoteRepository> entry : this.properties.getRemoteRepositories()
+				.entrySet()) {
 			MavenProperties.RemoteRepository remoteRepository = entry.getValue();
 			RemoteRepository.Builder remoteRepositoryBuilder = new RemoteRepository.Builder(
 					entry.getKey(), DEFAULT_CONTENT_TYPE, remoteRepository.getUrl());
+			// Update policies when set.
+			if (remoteRepository.getPolicy() != null) {
+				remoteRepositoryBuilder.setPolicy(new RepositoryPolicy(remoteRepository.getPolicy().isEnabled(),
+						remoteRepository.getPolicy().getUpdatePolicy(),
+						remoteRepository.getPolicy().getChecksumPolicy()));
+			}
+			if (remoteRepository.getReleasePolicy() != null) {
+				remoteRepositoryBuilder
+						.setReleasePolicy(new RepositoryPolicy(remoteRepository.getReleasePolicy().isEnabled(),
+								remoteRepository.getReleasePolicy().getUpdatePolicy(),
+								remoteRepository.getReleasePolicy().getChecksumPolicy()));
+			}
+			if (remoteRepository.getSnapshotPolicy() != null) {
+				remoteRepositoryBuilder
+						.setSnapshotPolicy(new RepositoryPolicy(remoteRepository.getSnapshotPolicy().isEnabled(),
+								remoteRepository.getSnapshotPolicy().getUpdatePolicy(),
+								remoteRepository.getSnapshotPolicy().getChecksumPolicy()));
+			}
 			if (isProxyEnabled()) {
 				MavenProperties.Proxy proxyProperties = this.properties.getProxy();
 				if (this.authentication != null) {
@@ -278,14 +297,14 @@ class MavenArtifactResolver {
 		catch (ArtifactResolutionException e) {
 
 			ChoiceFormat pluralizer = new ChoiceFormat(
-				new double[] {0d, 1d, ChoiceFormat.nextDouble(1d)},
-				new String[] {"repositories: ", "repository: ", "repositories: "}
-			);
-			MessageFormat messageFormat = new MessageFormat("Failed to resolve MavenResource: {0}. Configured remote {1}: {2}");
+					new double[] { 0d, 1d, ChoiceFormat.nextDouble(1d) },
+					new String[] { "repositories: ", "repository: ", "repositories: " });
+			MessageFormat messageFormat = new MessageFormat(
+					"Failed to resolve MavenResource: {0}. Configured remote {1}: {2}");
 			messageFormat.setFormat(1, pluralizer);
 			String repos = properties.getRemoteRepositories().isEmpty()
-				? "none"
-				: StringUtils.collectionToDelimitedString(properties.getRemoteRepositories().keySet(),",", "[", "]");
+					? "none"
+					: StringUtils.collectionToDelimitedString(properties.getRemoteRepositories().keySet(), ",", "[", "]");
 			throw new IllegalStateException(
 					messageFormat.format(new Object[] { resource, properties.getRemoteRepositories().size(), repos }),
 					e);

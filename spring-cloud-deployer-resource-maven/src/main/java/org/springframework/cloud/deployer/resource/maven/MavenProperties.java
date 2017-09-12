@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,6 +204,12 @@ public class MavenProperties {
 
 		private Authentication auth;
 
+		private RepositoryPolicy policy;
+
+		private RepositoryPolicy snapshotPolicy;
+
+		private RepositoryPolicy releasePolicy;
+
 		public RemoteRepository() {
 		}
 
@@ -230,6 +236,64 @@ public class MavenProperties {
 
 		public void setAuth(final Authentication auth) {
 			this.auth = auth;
+		}
+
+		public RepositoryPolicy getPolicy() {
+			return policy;
+		}
+
+		public void setPolicy(RepositoryPolicy policy) {
+			this.policy = policy;
+		}
+
+		public RepositoryPolicy getSnapshotPolicy() {
+			return snapshotPolicy;
+		}
+
+		public void setSnapshotPolicy(RepositoryPolicy snapshotPolicy) {
+			this.snapshotPolicy = snapshotPolicy;
+		}
+
+		public RepositoryPolicy getReleasePolicy() {
+			return releasePolicy;
+		}
+
+		public void setReleasePolicy(RepositoryPolicy releasePolicy) {
+			this.releasePolicy = releasePolicy;
+		}
+
+		public static class RepositoryPolicy {
+
+			private boolean enabled = true;
+
+			private String updatePolicy = "always";
+
+			private String checksumPolicy = "warn";
+
+			public boolean isEnabled() {
+				return enabled;
+			}
+
+			public void setEnabled(boolean enabled) {
+				this.enabled = enabled;
+			}
+
+			public String getUpdatePolicy() {
+				return updatePolicy;
+			}
+
+			public void setUpdatePolicy(String updatePolicy) {
+				this.updatePolicy = updatePolicy;
+			}
+
+			public String getChecksumPolicy() {
+				return checksumPolicy;
+			}
+
+			public void setChecksumPolicy(String checksumPolicy) {
+				this.checksumPolicy = checksumPolicy;
+			}
+
 		}
 	}
 
