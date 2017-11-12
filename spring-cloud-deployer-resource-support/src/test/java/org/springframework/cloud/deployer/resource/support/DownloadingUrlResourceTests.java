@@ -15,31 +15,24 @@
  */
 package org.springframework.cloud.deployer.resource.support;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
+import org.junit.Test;
 
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.util.FileCopyUtils;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
- * Resource loader for HTTP/HTTPS schemes that doesn't cache resources.
- *
- * @author Ilayaperumal Gopinathan
+ * @author Mark Pollack
  */
-public class HttpResourceLoader extends DefaultResourceLoader {
+public class DownloadingUrlResourceTests {
 
-	@Override
-	public Resource getResource(String location) {
-		try {
-			return new HttpResource(location);
-		}
-		catch (MalformedURLException e) {
-			throw new IllegalStateException(e);
-		}
+	@Test
+	public void test() throws Exception {
+		DownloadingUrlResource httpResource = new DownloadingUrlResource("http://repo.spring.io/libs-release/org/springframework/cloud/stream/app/file-sink-rabbit/1.2.0.RELEASE/file-sink-rabbit-1.2.0.RELEASE.jar");
+		File file1 = httpResource.getFile();
+		File file2 = httpResource.getFile();
+		assertThat(file1, is(equalTo(file2)));
 	}
 }

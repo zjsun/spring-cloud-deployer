@@ -17,7 +17,6 @@
 package org.springframework.cloud.deployer.resource.support;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -30,13 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.FileCopyUtils;
 
 /**
  * A {@link ResourceLoader} implementation that delegates to other {@link ResourceLoader} instances
@@ -111,7 +108,7 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 			ResourceLoader loader = this.loaders.get(scheme);
 			if (loader == null) {
 				if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https")) {
-					loader = new HttpResourceLoader();
+					loader = new DownloadingUrlResourceLoader();
 				}
 				else {
 					loader = this.defaultResourceLoader;
