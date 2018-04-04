@@ -70,7 +70,7 @@ public class DeployerIntegrationTestProperties {
 	 */
 	private String commandLineArgValueThatMayNeedEscaping;
 
-	@Value("${INSTANCE_INDEX:${CF_INSTANCE_INDEX:0}}")
+	@Value("${INSTANCE_INDEX:${instance.index:${CF_INSTANCE_INDEX:0}}}")
 	private Integer instanceIndex;
 
 	public int getInitDelay() {
