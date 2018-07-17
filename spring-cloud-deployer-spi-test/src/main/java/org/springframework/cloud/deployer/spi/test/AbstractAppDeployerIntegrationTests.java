@@ -370,7 +370,6 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 	 * Tests support for instance count support and individual instance status report.
 	 */
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testMultipleInstancesDeploymentAndPartialState() {
 		Map<String, String> appProperties = new HashMap<>();
 		appProperties.put("matchInstances", "1"); // Only instance n°1 will kill itself
