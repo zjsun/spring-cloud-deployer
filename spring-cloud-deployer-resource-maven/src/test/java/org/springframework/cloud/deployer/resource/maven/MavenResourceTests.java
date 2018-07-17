@@ -153,6 +153,7 @@ public class MavenResourceTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void checkRepositoryPolicies() {
 		MavenProperties mavenProperties = new MavenProperties();
 		mavenProperties.setChecksumPolicy("always");

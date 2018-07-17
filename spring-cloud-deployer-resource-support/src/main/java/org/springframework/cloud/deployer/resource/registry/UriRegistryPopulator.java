@@ -65,7 +65,7 @@ public class UriRegistryPopulator implements ResourceLoaderAware {
 	 * @return the registered URI values in the map with the keys being the property names
 	 */
 	public Map<String, URI> populateRegistry(boolean overwrite, UriRegistry registry, String... resourceUris) {
-		Assert.notEmpty(resourceUris);
+		Assert.notEmpty(resourceUris, "The resource URIs array must not be empty: it must contain at least 1 element.");
 		Map<String, URI> registered = new HashMap<>();
 		for (String resourceUri : resourceUris) {
 			Resource resource = this.resourceLoader.getResource(resourceUri);
