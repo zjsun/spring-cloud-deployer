@@ -29,7 +29,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * A {@link Resource} implementation that will download a {@link UrlResource} to a temp file when
@@ -66,8 +70,25 @@ public class DownloadingUrlResource extends UrlResource {
 	public synchronized File getFile() throws IOException {
 		if (file == null) {
 			// Create a well formatted filename, no dashes, slashes, etc from the URL
+			String simpleName = null;
+			try {
+				Path path = Paths.get(getURL().toURI().getPath());
+				simpleName = path.getFileName().toString().replaceAll("[^\\p{IsAlphabetic}^\\p{IsDigit}]", "");
+			} catch (URISyntaxException e) {
+				logger.info("Could not create simple name from last part of URL", e.getMessage());
+			}
 			String fileName = ShaUtils.sha1(getURL().toString());
-			this.file = new File(Files.createTempDirectory("spring-cloud-deployer").toFile(), fileName);
+			if (simpleName != null) {
+				try {
+					this.file = new File(Files.createTempDirectory("spring-cloud-deployer").toFile(),
+							fileName + "-" + simpleName);
+				} catch (IOException e) {
+					logger.info("Could not create simple temp file name using last part of URL");
+				}
+			}
+			if (file == null) {
+				this.file = new File(Files.createTempDirectory("spring-cloud-deployer").toFile(), fileName);
+			}
 			// Get the input stream for the URLResource
 			logger.info("Downloading [" + getURL().toString() + "] to " + this.file.getAbsolutePath());
 			FileCopyUtils.copy(this.getInputStream(), new FileOutputStream(file));
