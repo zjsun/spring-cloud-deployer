@@ -99,11 +99,7 @@ public class DownloadingUrlResource extends UrlResource {
 	@Override
 	public synchronized String getDescription() {
 		StringBuffer sb = new StringBuffer();
-		try {
-			sb.append("URL [" + getURL() + "]");
-		} catch (IOException e) {
-			sb.append("URL [could not be retrieved]");
-		}
+		sb.append("URL [" + getURL() + "]");
 		if (file != null) {
 			sb.append(", file [" + this.file.getAbsolutePath() + "]");
 		}
