@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,9 @@
 
 package org.springframework.cloud.deployer.resource.support;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -40,10 +33,6 @@ import org.springframework.util.CollectionUtils;
  * that are stored in a Map with their associated URI schemes as the keys. If a scheme does not
  * exist within the Map, it will fallback to a {@link DefaultResourceLoader}.
  * The Map may be empty (or {@literal null}).
- * <p>
- * This implementation is also caching remote resources which are not directly accessible
- * as {@link File} into either a given cache directory or on default a temporary location
- * prefixed by "deployer-resource-cache".
  *
  * @author Mark Fisher
  * @author Janne Valkealahti
@@ -51,23 +40,17 @@ import org.springframework.util.CollectionUtils;
  */
 public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderAware {
 
-	private static final Logger logger = LoggerFactory.getLogger(DelegatingResourceLoader.class);
-
 	private final ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 	private final Map<String, ResourceLoader> loaders;
 
 	private ResourceLoader defaultResourceLoader = new DefaultResourceLoader();
 
-	private final File cacheDirectory;
-
-	private final static String DEFAULT_CACHE_PREFIX = "deployer-resource-cache";
-
 	/**
 	 * Instantiates a new delegating resource loader.
 	 */
 	public DelegatingResourceLoader() {
-		this(null, null);
+		this(null);
 	}
 
 	/**
@@ -76,20 +59,9 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 	 * @param loaders the loaders
 	 */
 	public DelegatingResourceLoader(Map<String, ResourceLoader> loaders) {
-		this(loaders, null);
-	}
-
-	/**
-	 * Instantiates a new delegating resource loader.
-	 *
-	 * @param loaders the loaders
-	 * @param cacheDirectory the cache directory
-	 */
-	public DelegatingResourceLoader(Map<String, ResourceLoader> loaders, File cacheDirectory) {
 		this.loaders = CollectionUtils.isEmpty(loaders)
 				? Collections.<String, ResourceLoader>emptyMap()
 				: Collections.unmodifiableMap(loaders);
-		this.cacheDirectory = initCacheDirectory(cacheDirectory);
 	}
 
 	@Override
@@ -128,41 +100,11 @@ public class DelegatingResourceLoader implements ResourceLoader, ResourceLoaderA
 	}
 
 	/**
-	 * Handles init operation of a local cache directory.
+	 * Gets a map of configured loaders.
 	 *
-	 * @param cacheDirectory the cache directory
-	 * @return the directory
+	 * @return the loaders
 	 */
-	private File initCacheDirectory(File cacheDirectory) {
-		try {
-			if (cacheDirectory == null) {
-				Path tempDirectory = Files.createTempDirectory(DEFAULT_CACHE_PREFIX);
-				return tempDirectory.toFile();
-			}
-			else {
-				cacheDirectory.mkdirs();
-				return cacheDirectory;
-			}
-		}
-		catch (IOException e) {
-			throw new IllegalArgumentException("Unable to create cache directory", e);
-		}
+	public Map<String, ResourceLoader> getLoaders() {
+		return loaders;
 	}
-
-	/**
-	 * Check if a resource exists as a file.
-	 *
-	 * @param resource the resource
-	 * @return true, if resource can be accessed as file
-	 */
-	private static boolean existsAsFile(Resource resource) {
-		try {
-			resource.getFile();
-			return true;
-		}
-		catch (Exception e) {
-		}
-		return false;
-	}
-
 }
