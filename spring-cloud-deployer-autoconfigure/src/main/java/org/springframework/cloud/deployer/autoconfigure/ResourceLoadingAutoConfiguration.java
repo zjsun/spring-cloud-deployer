@@ -34,14 +34,18 @@ import org.springframework.core.io.ResourceLoader;
  * @author Janne Valkealahti
  */
 @Configuration
-@EnableConfigurationProperties(MavenConfigurationProperties.class)
 public class ResourceLoadingAutoConfiguration {
 
-	@Bean
+	@Configuration
 	@ConditionalOnClass(MavenResourceLoader.class)
-	@Order(0)
-	public DelegatingResourceLoaderBuilderCustomizer mavenDelegatingResourceLoaderBuilderCustomizer(MavenProperties mavenProperties) {
-		return customizer -> customizer.loader("maven", new MavenResourceLoader(mavenProperties));
+	@EnableConfigurationProperties(MavenConfigurationProperties.class)
+	public static class MavenResourceLoaderConfig {
+
+		@Bean
+		@Order(0)
+		public DelegatingResourceLoaderBuilderCustomizer mavenDelegatingResourceLoaderBuilderCustomizer(MavenProperties mavenProperties) {
+			return customizer -> customizer.loader("maven", new MavenResourceLoader(mavenProperties));
+		}
 	}
 
 	@Configuration
