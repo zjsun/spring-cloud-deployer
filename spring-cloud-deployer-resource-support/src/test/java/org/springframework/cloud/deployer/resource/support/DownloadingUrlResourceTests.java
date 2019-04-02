@@ -34,6 +34,6 @@ public class DownloadingUrlResourceTests {
 		File file1 = httpResource.getFile();
 		File file2 = httpResource.getFile();
 		assertThat(file1, is(equalTo(file2)));
-		assertThat(file1.getName(), is(equalTo("6af04efff943e5482911ef00472e796c41c6d411-filesinkrabbit120RELEASEjar")));
+		assertThat(file1.getName(), is(equalTo("48d8fe21c4b38a2b5c274675fecf815e35d38ac3-filesinkrabbit120RELEASEjar")));
 	}
 }
