@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.deployer.resource.support;
 
-import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
-
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -27,6 +23,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+
+import java.net.URI;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A {@link ResourceLoader} implementation that delegates to other {@link ResourceLoader} instances

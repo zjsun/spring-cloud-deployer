@@ -15,10 +15,10 @@
  */
 package org.springframework.cloud.deployer.resource.support;
 
-import java.net.MalformedURLException;
-
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
+
+import java.net.MalformedURLException;
 
 /**
  * Resource loader that will return a {@link DownloadingUrlResource}

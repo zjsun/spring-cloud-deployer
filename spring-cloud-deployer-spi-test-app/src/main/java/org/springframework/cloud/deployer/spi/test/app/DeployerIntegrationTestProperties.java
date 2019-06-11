@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.deployer.spi.test.app;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Configuration properties for the IntegrationTestProcessor app.

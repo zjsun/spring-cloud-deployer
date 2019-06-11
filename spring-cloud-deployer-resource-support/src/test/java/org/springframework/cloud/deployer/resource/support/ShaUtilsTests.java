@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.deployer.resource.support;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Simple sha utils tests.

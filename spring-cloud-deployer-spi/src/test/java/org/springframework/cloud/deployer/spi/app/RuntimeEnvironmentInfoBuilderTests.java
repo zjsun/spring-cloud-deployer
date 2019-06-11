@@ -16,14 +16,13 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
-
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
 import org.springframework.core.SpringVersion;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Tests for constructing a {@link RuntimeEnvironmentInfo}

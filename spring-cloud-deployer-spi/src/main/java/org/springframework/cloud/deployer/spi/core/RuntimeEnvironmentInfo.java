@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.deployer.spi.core;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
 import org.springframework.core.SpringVersion;
 import org.springframework.util.Assert;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class used to communicate the runtime environment info.

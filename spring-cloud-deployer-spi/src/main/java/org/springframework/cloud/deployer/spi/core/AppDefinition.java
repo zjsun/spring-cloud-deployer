@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.deployer.spi.core;
 
+import org.springframework.core.style.ToStringCreator;
+import org.springframework.util.Assert;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.core.style.ToStringCreator;
-import org.springframework.util.Assert;
 
 /**
  * Definition of an app, including its name and its properties.

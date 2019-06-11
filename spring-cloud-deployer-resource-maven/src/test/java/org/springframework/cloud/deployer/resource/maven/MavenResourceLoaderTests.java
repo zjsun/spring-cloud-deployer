@@ -16,11 +16,10 @@
 
 package org.springframework.cloud.deployer.resource.maven;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
-
 import org.springframework.core.io.Resource;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for the {@link MavenResourceLoader}.

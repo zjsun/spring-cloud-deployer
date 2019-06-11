@@ -16,14 +16,14 @@
 
 package org.springframework.cloud.deployer.spi.test.app;
 
-import static org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties.FUNNY_CHARACTERS;
-
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
+
+import javax.annotation.PostConstruct;
+
+import static org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties.FUNNY_CHARACTERS;
 
 /**
  * An app that can misbehave, useful for integration testing of app deployers.

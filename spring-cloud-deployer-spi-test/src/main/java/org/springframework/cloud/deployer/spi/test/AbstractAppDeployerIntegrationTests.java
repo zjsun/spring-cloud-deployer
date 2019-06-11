@@ -16,6 +16,31 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.cloud.deployer.spi.app.AppDeployer;
+import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
+import org.springframework.cloud.deployer.spi.app.AppStatus;
+import org.springframework.cloud.deployer.spi.app.DeploymentState;
+import org.springframework.cloud.deployer.spi.core.AppDefinition;
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
+import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
+import org.springframework.core.io.Resource;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -27,32 +52,6 @@ import static org.springframework.cloud.deployer.spi.app.DeploymentState.failed;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.partial;
 import static org.springframework.cloud.deployer.spi.app.DeploymentState.unknown;
 import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import org.springframework.cloud.deployer.spi.app.AppDeployer;
-import org.springframework.cloud.deployer.spi.app.AppInstanceStatus;
-import org.springframework.cloud.deployer.spi.app.AppStatus;
-import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
-import org.springframework.cloud.deployer.spi.app.DeploymentState;
-import org.springframework.cloud.deployer.spi.core.AppDefinition;
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties;
-import org.springframework.core.io.Resource;
 
 /**
  * Abstract base class for integration tests of

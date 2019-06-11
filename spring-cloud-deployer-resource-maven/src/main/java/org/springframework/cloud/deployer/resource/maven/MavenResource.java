@@ -16,17 +16,17 @@
 
 package org.springframework.cloud.deployer.resource.maven;
 
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link Resource} implementation for resolving an artifact via maven coordinates.

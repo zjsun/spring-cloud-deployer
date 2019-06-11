@@ -15,11 +15,11 @@
  */
 package org.springframework.cloud.deployer.autoconfigure;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.cloud.deployer.resource.support.DelegatingResourceLoader;
 import org.springframework.core.io.ResourceLoader;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Builder implementation for a {@link DelegatingResourceLoader} which allows to

@@ -17,7 +17,6 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 

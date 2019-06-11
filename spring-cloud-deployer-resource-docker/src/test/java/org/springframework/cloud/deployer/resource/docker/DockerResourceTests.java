@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.deployer.resource.docker;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for the {@link DockerResource}.

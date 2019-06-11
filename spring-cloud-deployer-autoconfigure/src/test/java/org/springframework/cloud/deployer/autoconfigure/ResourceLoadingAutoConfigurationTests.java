@@ -15,8 +15,6 @@
  */
 package org.springframework.cloud.deployer.autoconfigure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.assertj.core.api.Condition;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -29,6 +27,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link ResourceLoadingAutoConfiguration}.

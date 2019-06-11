@@ -16,6 +16,14 @@
 
 package org.springframework.cloud.deployer.resource.registry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,15 +31,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Utility class for populating a {@link UriRegistry} via a

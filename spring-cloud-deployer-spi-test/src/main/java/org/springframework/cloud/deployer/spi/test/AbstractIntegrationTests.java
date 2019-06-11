@@ -16,18 +16,11 @@
 
 package org.springframework.cloud.deployer.spi.test;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-
-import java.io.IOException;
-import java.util.Properties;
-import java.util.UUID;
-
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +32,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.IOException;
+import java.util.Properties;
+import java.util.UUID;
+
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 
 /**
  * Abstract base class containing infrastructure for the TCK, common to both

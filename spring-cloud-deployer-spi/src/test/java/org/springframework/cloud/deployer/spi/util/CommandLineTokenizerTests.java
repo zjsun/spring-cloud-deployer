@@ -1,9 +1,9 @@
 package org.springframework.cloud.deployer.spi.util;
 
-import java.util.Arrays;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 /**
  * Unit tests for {@link CommandLineTokenizer}.

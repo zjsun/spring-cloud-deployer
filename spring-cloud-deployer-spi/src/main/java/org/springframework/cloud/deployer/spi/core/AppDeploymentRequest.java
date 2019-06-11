@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.deployer.spi.core;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Representation of an app deployment request. This includes the

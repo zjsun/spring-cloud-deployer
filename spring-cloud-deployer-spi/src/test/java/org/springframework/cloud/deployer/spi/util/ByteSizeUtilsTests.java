@@ -1,9 +1,9 @@
 package org.springframework.cloud.deployer.spi.util;
 
-import static org.junit.Assert.assertThat;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests for {@link ByteSizeUtils}.

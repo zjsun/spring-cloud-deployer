@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.deployer.resource.registry;
 
+import org.springframework.util.Assert;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.util.Assert;
 
 /**
  * In-memory (non persistent) {@link UriRegistry} implementation.
