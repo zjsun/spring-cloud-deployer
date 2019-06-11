@@ -17,24 +17,12 @@ package org.springframework.cloud.deployer.resource.maven;
 
 import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.RepositoryEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.PrintStream;
+public class LoggingRepositoryListener extends AbstractRepositoryListener {
 
-public class ConsoleRepositoryListener
-		extends AbstractRepositoryListener
-{
-
-	private PrintStream out;
-
-	public ConsoleRepositoryListener()
-	{
-		this( null );
-	}
-
-	public ConsoleRepositoryListener( PrintStream out )
-	{
-		this.out = ( out != null ) ? out : System.out;
-	}
+	private static final Logger log = LoggerFactory.getLogger(LoggingRepositoryListener.class);
 
 	public void artifactDeployed( RepositoryEvent event )
 	{
@@ -123,6 +111,6 @@ public class ConsoleRepositoryListener
 
 	private void println( String event, String message )
 	{
-		out.println( "Aether Repository - " + event + ": " + message );
+		log.info( "Aether Repository - " + event + ": " + message );
 	}
 }

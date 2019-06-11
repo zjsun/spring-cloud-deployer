@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.deployer.resource.maven;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -43,6 +41,8 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -69,7 +69,7 @@ import java.util.Map;
  */
 class MavenArtifactResolver {
 
-	private static final Log log = LogFactory.getLog(MavenArtifactResolver.class);
+	private static final Logger log = LoggerFactory.getLogger(MavenArtifactResolver.class);
 
 	private static final String DEFAULT_CONTENT_TYPE = "default";
 
@@ -230,7 +230,7 @@ class MavenArtifactResolver {
 		session.setUpdatePolicy(this.properties.getUpdatePolicy());
 		session.setChecksumPolicy(this.properties.getChecksumPolicy());
 		if (this.properties.isEnableRepositoryListener()) {
-			session.setRepositoryListener(new ConsoleRepositoryListener());
+			session.setRepositoryListener(new LoggingRepositoryListener());
 		}
 		if (this.properties.getConnectTimeout() != null) {
 			session.setConfigProperty(ConfigurationProperties.CONNECT_TIMEOUT, this.properties.getConnectTimeout());
