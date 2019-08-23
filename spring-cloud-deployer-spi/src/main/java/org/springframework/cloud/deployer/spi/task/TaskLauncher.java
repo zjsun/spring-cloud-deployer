@@ -129,5 +129,7 @@ public interface TaskLauncher {
 	 *
 	 * @return the task application log
 	 */
-	String getLog(String id);
+	default String getLog(String id) {
+		throw new UnsupportedOperationException("'getLog' is not implemented.");
+	}
 }
