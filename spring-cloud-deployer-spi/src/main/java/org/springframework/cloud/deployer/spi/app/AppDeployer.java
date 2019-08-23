@@ -150,5 +150,7 @@ public interface AppDeployer {
 	 *
 	 * @return the application log
 	 */
-	String getLog(String id);
+	default String getLog(String id) {
+		throw new UnsupportedOperationException("'getLog' is not implemented.");
+	}
 }

@@ -17,6 +17,7 @@
 package org.springframework.cloud.deployer.spi.app;
 
 import org.junit.Test;
+
 import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 import org.springframework.cloud.deployer.spi.util.RuntimeVersionUtils;
 import org.springframework.core.SpringVersion;
