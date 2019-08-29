@@ -15,7 +15,7 @@
  */
 
 
-package org.springframework.cloud.deployer.scheduler.spi.core;
+package org.springframework.cloud.deployer.spi.scheduler;
 
 import java.util.List;
 

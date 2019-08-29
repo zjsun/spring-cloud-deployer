@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.springframework.cloud.deployer.scheduler.spi.test.app;
+package org.springframework.cloud.deployer.spi.scheduler.test.app;
 
 import java.util.HashSet;
 import java.util.Set;

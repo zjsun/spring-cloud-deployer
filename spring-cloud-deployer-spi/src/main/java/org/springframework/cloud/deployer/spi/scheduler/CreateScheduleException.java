@@ -14,26 +14,17 @@
  *  limitations under the License.
  */
 
-package org.springframework.cloud.deployer.scheduler.spi.core;
+package org.springframework.cloud.deployer.spi.scheduler;
 
 /**
- * Spring Cloud Scheduler property keys.
+ * Thrown when a schedule fails to be created on the scheduler infrastructure.
  *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  */
-public class SchedulerPropertyKeys {
+public class CreateScheduleException extends SchedulerException{
 
-	public static final String PREFIX = "spring.cloud.scheduler.";
-
-	/**
-	 * Scheduler cron property key prefix.
-	 */
-	public static final String CRON_PREFIX = PREFIX + "cron.";
-
-	/**
-	 * Scheduler cron expression property key.
-	 */
-	public static final String CRON_EXPRESSION = CRON_PREFIX + "expression";
-
+	public CreateScheduleException(String scheduleName, Throwable t) {
+		super(String.format("Failed to create schedule %s",scheduleName), t);
+	}
 }

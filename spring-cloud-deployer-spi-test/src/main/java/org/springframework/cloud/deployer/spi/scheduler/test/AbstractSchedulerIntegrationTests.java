@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.springframework.cloud.deployer.scheduler.spi.test;
+package org.springframework.cloud.deployer.spi.scheduler.test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,13 +43,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
-import org.springframework.cloud.deployer.scheduler.spi.core.CreateScheduleException;
-import org.springframework.cloud.deployer.scheduler.spi.core.ScheduleInfo;
-import org.springframework.cloud.deployer.scheduler.spi.core.ScheduleRequest;
-import org.springframework.cloud.deployer.scheduler.spi.core.Scheduler;
-import org.springframework.cloud.deployer.scheduler.spi.core.SchedulerException;
-import org.springframework.cloud.deployer.scheduler.spi.core.SchedulerPropertyKeys;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
+import org.springframework.cloud.deployer.spi.scheduler.CreateScheduleException;
+import org.springframework.cloud.deployer.spi.scheduler.ScheduleInfo;
+import org.springframework.cloud.deployer.spi.scheduler.ScheduleRequest;
+import org.springframework.cloud.deployer.spi.scheduler.Scheduler;
+import org.springframework.cloud.deployer.spi.scheduler.SchedulerException;
+import org.springframework.cloud.deployer.spi.scheduler.SchedulerPropertyKeys;
 import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -402,7 +402,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	}
 
 	/**
-	 * Return a resource corresponding to the spring-cloud-deployer-scheduler-spi-test-app app suitable for the target runtime.
+	 * Return a resource corresponding to the spring-cloud-deployer-spi-scheduler-test-app app suitable for the target runtime.
 	 *
 	 * The default implementation returns an uber-jar fetched via Maven. Subclasses may override.
 	 */
@@ -412,11 +412,11 @@ public abstract class AbstractSchedulerIntegrationTests {
 			properties.load(new ClassPathResource("integration-test-app.properties").getInputStream());
 		}
 		catch (IOException e) {
-			throw new RuntimeException("Failed to determine which version of spring-cloud-deployer-scheduler-spi-test-app to use", e);
+			throw new RuntimeException("Failed to determine which version of spring-cloud-deployer-spi-scheduler-test-app to use", e);
 		}
 		return new MavenResource.Builder(mavenProperties)
 				.groupId("org.springframework.cloud")
-				.artifactId("spring-cloud-deployer-scheduler-spi-test-app")
+				.artifactId("spring-cloud-deployer-spi-scheduler-test-app")
 				.classifier("exec")
 				.version(properties.getProperty("version"))
 				.extension("jar")

@@ -14,21 +14,26 @@
  *  limitations under the License.
  */
 
-package org.springframework.cloud.deployer.scheduler.spi.core;
+package org.springframework.cloud.deployer.spi.scheduler;
 
 /**
- * Base Exception class for Spring Cloud Scheduler.
+ * Spring Cloud Scheduler property keys.
  *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  */
-public class SchedulerException extends RuntimeException{
+public class SchedulerPropertyKeys {
 
-	public SchedulerException(String exceptionMessage) {
-		super(exceptionMessage);
-	}
+	public static final String PREFIX = "spring.cloud.scheduler.";
 
-	public SchedulerException(String exceptionMessage, Throwable t) {
-		super(exceptionMessage, t);
-	}
+	/**
+	 * Scheduler cron property key prefix.
+	 */
+	public static final String CRON_PREFIX = PREFIX + "cron.";
+
+	/**
+	 * Scheduler cron expression property key.
+	 */
+	public static final String CRON_EXPRESSION = CRON_PREFIX + "expression";
+
 }

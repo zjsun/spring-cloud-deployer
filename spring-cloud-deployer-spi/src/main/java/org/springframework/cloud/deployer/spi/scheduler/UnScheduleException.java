@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.springframework.cloud.deployer.scheduler.spi.core;
+package org.springframework.cloud.deployer.spi.scheduler;
 
 /**
  * Thrown when a schedule fails to be unscheduled on the scheduler infrastructure.
