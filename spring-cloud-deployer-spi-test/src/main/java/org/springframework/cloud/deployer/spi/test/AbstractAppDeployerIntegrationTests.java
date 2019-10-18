@@ -438,7 +438,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		doTestScale(true);
 	}
 
-	private void doTestScale(Boolean indexed) {
+	protected void doTestScale(Boolean indexed) {
 		final int DESIRED_COUNT = 3;
 
 		Map<String, String> deploymentProperties =
@@ -448,7 +448,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		Resource resource = testApplication();
 		AppDeploymentRequest request = new AppDeploymentRequest(definition, resource, deploymentProperties);
 
-		log.info("Deploying {} index={}...", request.getDefinition().getName(),indexed);
+		log.info("Deploying {} index={}...", request.getDefinition().getName(), indexed);
 
 		String deploymentId = appDeployer().deploy(request);
 
@@ -459,12 +459,12 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		log.info("Scaling {} to {} instances...", request.getDefinition().getName(), DESIRED_COUNT);
 
-		appDeployer().scale(new AppScaleRequest(request.getDefinition().getName(), DESIRED_COUNT));
+		appDeployer().scale(new AppScaleRequest(deploymentId, DESIRED_COUNT));
 
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
-		assertThat(appDeployer().status(deploymentId).getInstances().size(),is(DESIRED_COUNT));
+		assertThat(appDeployer().status(deploymentId).getInstances().size(), is(DESIRED_COUNT));
 
 		List<DeploymentState> individualStates = new ArrayList<>();
 		for (AppInstanceStatus status : appDeployer().status(deploymentId).getInstances().values()) {
@@ -473,18 +473,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 
 		assertThat(individualStates, everyItem(is(deployed)));
 
+		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(), DESIRED_COUNT);
 
-		log.info("Scaling {} from {} to 1 instance...", request.getDefinition().getName(),DESIRED_COUNT);
-
-		appDeployer().scale(new AppScaleRequest(request.getDefinition().getName(), 1));
-
-		assertThat(deploymentId, eventually(hasStatusThat(
-			Matchers.<AppStatus>hasProperty("state", is(partial))), timeout.maxAttempts, timeout.pause));
+		appDeployer().scale(new AppScaleRequest(deploymentId, 1));
 
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
-		assertThat(appDeployer().status(deploymentId).getInstances().size(),is(1));
+		assertThat(appDeployer().status(deploymentId).getInstances().size(), is(1));
 
 		log.info("Undeploying {}...", deploymentId);
 
