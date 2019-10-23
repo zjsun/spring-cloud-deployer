@@ -80,4 +80,14 @@ public class AppScaleRequest {
     public Optional<Map<String, String>> getProperties() {
         return properties;
     }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("AppScaleRequest{");
+        sb.append("count=").append(count);
+        sb.append(", deploymentId='").append(deploymentId).append('\'');
+        sb.append(", properties=").append(properties);
+        sb.append('}');
+        return sb.toString();
+    }
 }
