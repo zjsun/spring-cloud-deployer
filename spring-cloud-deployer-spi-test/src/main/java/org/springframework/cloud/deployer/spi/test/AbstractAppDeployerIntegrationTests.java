@@ -464,7 +464,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
-		assertThat(appDeployer().status(deploymentId).getInstances().size(), is(DESIRED_COUNT));
+		assertThat(deploymentId, eventually(appInstanceCount(is(DESIRED_COUNT)), timeout.maxAttempts, timeout.pause));
 
 		List<DeploymentState> individualStates = new ArrayList<>();
 		for (AppInstanceStatus status : appDeployer().status(deploymentId).getInstances().values()) {
@@ -480,7 +480,7 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(deployed))), timeout.maxAttempts, timeout.pause));
 
-		assertThat(appDeployer().status(deploymentId).getInstances().size(), is(1));
+		assertThat(deploymentId, eventually(appInstanceCount(is(1)), timeout.maxAttempts, timeout.pause));
 
 		log.info("Undeploying {}...", deploymentId);
 
@@ -488,6 +488,14 @@ public abstract class AbstractAppDeployerIntegrationTests extends AbstractIntegr
 		appDeployer().undeploy(deploymentId);
 		assertThat(deploymentId, eventually(hasStatusThat(
 			Matchers.<AppStatus>hasProperty("state", is(unknown))), timeout.maxAttempts, timeout.pause));
+	}
+
+	/**
+	 * A Hamcrest Matcher that queries the number of app instances for some app id.
+	 * @param countMatcher number of app instances to match.
+	 */
+	protected Matcher<String> appInstanceCount(final Matcher<Integer> countMatcher) {
+		return AppCountMatcher.hasAppCount(countMatcher, appDeployer());
 	}
 
 	/**
