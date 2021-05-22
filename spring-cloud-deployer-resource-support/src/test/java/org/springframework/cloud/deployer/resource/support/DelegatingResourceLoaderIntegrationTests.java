@@ -15,10 +15,11 @@
  */
 package org.springframework.cloud.deployer.resource.support;
 
-import org.junit.Test;
-import org.springframework.core.io.Resource;
-
 import java.io.File;
+
+import org.junit.Test;
+
+import org.springframework.core.io.Resource;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;

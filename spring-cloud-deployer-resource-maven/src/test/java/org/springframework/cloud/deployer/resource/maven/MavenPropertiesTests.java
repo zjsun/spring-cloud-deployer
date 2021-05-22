@@ -15,18 +15,19 @@
  */
 package org.springframework.cloud.deployer.resource.maven;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHttpMethod;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.env.SystemEnvironmentPropertySource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MavenPropertiesTests {
 

@@ -42,8 +42,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.springframework.cloud.deployer.spi.task.LaunchState.complete;
-import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 
 /**
  * Abstract base class for integration tests of
@@ -132,7 +130,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
-		assertThat(launchId, eventually(hasStatusThat(
+		assertThat(launchId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 
 		taskLauncher().destroy(definition.getName());
@@ -151,7 +149,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
-		assertThat(launchId, eventually(hasStatusThat(
+		assertThat(launchId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 
 		log.info("Re-Launching {}...", request.getDefinition().getName());
@@ -160,7 +158,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		assertThat(newLaunchId, not(is(launchId)));
 
 		timeout = deploymentTimeout();
-		assertThat(newLaunchId, eventually(hasStatusThat(
+		assertThat(newLaunchId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 
 		taskLauncher().destroy(definition.getName());
@@ -179,7 +177,7 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
-		assertThat(launchId, eventually(hasStatusThat(
+		assertThat(launchId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.failed))), timeout.maxAttempts, timeout.pause));
 
 		taskLauncher().destroy(definition.getName());
@@ -198,14 +196,14 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		String launchId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
-		assertThat(launchId, eventually(hasStatusThat(
+		assertThat(launchId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.running))), timeout.maxAttempts, timeout.pause));
 
 		log.info("Cancelling {}...", request.getDefinition().getName());
 		taskLauncher().cancel(launchId);
 
 		timeout = undeploymentTimeout();
-		assertThat(launchId, eventually(hasStatusThat(
+		assertThat(launchId, EventuallyMatcher.eventually(hasStatusThat(
 				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.cancelled))), timeout.maxAttempts, timeout.pause));
 
 		taskLauncher().destroy(definition.getName());
@@ -226,8 +224,8 @@ public abstract class AbstractTaskLauncherIntegrationTests extends AbstractInteg
 		String deploymentId = taskLauncher().launch(request);
 
 		Timeout timeout = deploymentTimeout();
-		assertThat(deploymentId, eventually(hasStatusThat(
-				Matchers.<TaskStatus>hasProperty("state", Matchers.is(complete))), timeout.maxAttempts, timeout.pause));
+		assertThat(deploymentId, EventuallyMatcher.eventually(hasStatusThat(
+				Matchers.<TaskStatus>hasProperty("state", Matchers.is(LaunchState.complete))), timeout.maxAttempts, timeout.pause));
 		taskLauncher().destroy(definition.getName());
 	}
 

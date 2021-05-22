@@ -15,8 +15,6 @@
  */
 package org.springframework.cloud.deployer.resource.maven;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +22,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.Authentication;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.RemoteRepository;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHttpMethod;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHttpMethodProperties;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WagonHttpTests {
 

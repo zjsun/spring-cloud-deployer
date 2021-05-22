@@ -1,17 +1,17 @@
 /*
  * Copyright 2018-2019 the original author or authors.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *          https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.springframework.cloud.deployer.spi.scheduler.test;
@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;
 import org.springframework.cloud.deployer.resource.maven.MavenResource;
 import org.springframework.cloud.deployer.spi.core.AppDefinition;
@@ -50,6 +51,7 @@ import org.springframework.cloud.deployer.spi.scheduler.ScheduleRequest;
 import org.springframework.cloud.deployer.spi.scheduler.Scheduler;
 import org.springframework.cloud.deployer.spi.scheduler.SchedulerException;
 import org.springframework.cloud.deployer.spi.scheduler.SchedulerPropertyKeys;
+import org.springframework.cloud.deployer.spi.test.EventuallyMatcher;
 import org.springframework.cloud.deployer.spi.test.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,8 +62,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
-import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.eventually;
 /**
  * Contains base set of tests that are required for each implementation of
  * Spring Cloud Scheduler to pass.
@@ -70,7 +70,7 @@ import static org.springframework.cloud.deployer.spi.test.EventuallyMatcher.even
  * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = NONE)
+@SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @ContextConfiguration(classes = AbstractSchedulerIntegrationTests.Config.class)
 public abstract class AbstractSchedulerIntegrationTests {
 
@@ -231,7 +231,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 		ScheduleInfo scheduleInfo = new ScheduleInfo();
 		scheduleInfo.setScheduleName(scheduleName+0);
 		scheduleInfo.setTaskDefinitionName(definitionName+0);
-		assertThat(scheduleInfo, eventually(
+		assertThat(scheduleInfo, EventuallyMatcher.eventually(
 				hasSpecifiedSchedulesByTaskDefinitionName(taskScheduler().list(definitionName+0),
 						scheduleInfo.getTaskDefinitionName(), 2),
 				this.scheduleTimeout.maxAttempts, this.scheduleTimeout.pause));
@@ -274,7 +274,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 	}
 
 	private void verifySchedule(ScheduleInfo scheduleInfo) {
-		assertThat(scheduleInfo, eventually(hasSpecifiedSchedule(taskScheduler().list(),
+		assertThat(scheduleInfo, EventuallyMatcher.eventually(hasSpecifiedSchedule(taskScheduler().list(),
 				scheduleInfo.getScheduleName()), this.scheduleTimeout.maxAttempts,
 				this.scheduleTimeout.pause));
 	}
@@ -286,7 +286,7 @@ public abstract class AbstractSchedulerIntegrationTests {
 
 		ScheduleInfo scheduleInfo = new ScheduleInfo();
 		scheduleInfo.setScheduleName(scheduleName);
-		assertThat(scheduleInfo, eventually(specifiedScheduleNotPresent(
+		assertThat(scheduleInfo, EventuallyMatcher.eventually(specifiedScheduleNotPresent(
 				taskScheduler().list(), scheduleName),
 				this.unScheduleTimeout.maxAttempts, this.unScheduleTimeout.pause));
 

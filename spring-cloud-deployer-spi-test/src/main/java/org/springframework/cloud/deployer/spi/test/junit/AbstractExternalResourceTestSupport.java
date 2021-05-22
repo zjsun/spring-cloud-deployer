@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
 import org.springframework.util.Assert;
 
 import static org.junit.Assert.fail;

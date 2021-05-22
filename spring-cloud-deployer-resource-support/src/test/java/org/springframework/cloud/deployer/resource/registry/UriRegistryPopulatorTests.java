@@ -16,11 +16,6 @@
 
 package org.springframework.cloud.deployer.resource.registry;
 
-import org.junit.Test;
-import org.springframework.cloud.deployer.resource.StubResourceLoader;
-import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.Resource;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,6 +23,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
+
+import org.junit.Test;
+
+import org.springframework.cloud.deployer.resource.StubResourceLoader;
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.Resource;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;

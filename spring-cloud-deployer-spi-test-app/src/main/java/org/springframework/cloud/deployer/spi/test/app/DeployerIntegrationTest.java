@@ -16,14 +16,12 @@
 
 package org.springframework.cloud.deployer.spi.test.app;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
-
-import javax.annotation.PostConstruct;
-
-import static org.springframework.cloud.deployer.spi.test.app.DeployerIntegrationTestProperties.FUNNY_CHARACTERS;
 
 /**
  * An app that can misbehave, useful for integration testing of app deployers.
@@ -40,13 +38,17 @@ public class DeployerIntegrationTest {
 	@PostConstruct
 	public void init() throws InterruptedException {
 		String parameterThatMayNeedEscaping = properties.getParameterThatMayNeedEscaping();
-		if (parameterThatMayNeedEscaping != null && !FUNNY_CHARACTERS.equals(parameterThatMayNeedEscaping)) {
-			throw new IllegalArgumentException(String.format("Expected 'parameterThatMayNeedEscaping' value to be equal to '%s', but was '%s'", FUNNY_CHARACTERS, parameterThatMayNeedEscaping));
+		if (parameterThatMayNeedEscaping != null && !DeployerIntegrationTestProperties.FUNNY_CHARACTERS.equals(parameterThatMayNeedEscaping)) {
+			throw new IllegalArgumentException(
+					String.format("Expected 'parameterThatMayNeedEscaping' value to be equal to '%s', but was '%s'",
+							DeployerIntegrationTestProperties.FUNNY_CHARACTERS, parameterThatMayNeedEscaping));
 		}
 
 		String commandLineArgValueThatMayNeedEscaping = properties.getCommandLineArgValueThatMayNeedEscaping();
-		if (commandLineArgValueThatMayNeedEscaping != null && !FUNNY_CHARACTERS.equals(commandLineArgValueThatMayNeedEscaping)) {
-			throw new IllegalArgumentException(String.format("Expected 'commandLineArgValueThatMayNeedEscaping' value to be equal to '%s', but was '%s'", FUNNY_CHARACTERS, commandLineArgValueThatMayNeedEscaping));
+		if (commandLineArgValueThatMayNeedEscaping != null && !DeployerIntegrationTestProperties.FUNNY_CHARACTERS.equals(commandLineArgValueThatMayNeedEscaping)) {
+			throw new IllegalArgumentException(String.format(
+					"Expected 'commandLineArgValueThatMayNeedEscaping' value to be equal to '%s', but was '%s'",
+					DeployerIntegrationTestProperties.FUNNY_CHARACTERS, commandLineArgValueThatMayNeedEscaping));
 		}
 
 		Assert.notNull(properties.getInstanceIndex(), "instanceIndex should have been set by deployer or runtime");

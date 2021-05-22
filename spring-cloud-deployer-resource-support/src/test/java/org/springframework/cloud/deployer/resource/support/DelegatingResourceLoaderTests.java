@@ -16,18 +16,19 @@
 
 package org.springframework.cloud.deployer.resource.support;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.springframework.cloud.deployer.resource.StubResourceLoader;
-import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.ResourceLoader;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import org.springframework.cloud.deployer.resource.StubResourceLoader;
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.ResourceLoader;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;

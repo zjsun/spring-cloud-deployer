@@ -17,6 +17,7 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import org.junit.Test;
+
 import org.springframework.core.io.Resource;
 
 import static org.junit.Assert.assertEquals;

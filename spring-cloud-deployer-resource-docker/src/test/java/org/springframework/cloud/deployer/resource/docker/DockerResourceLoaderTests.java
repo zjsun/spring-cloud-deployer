@@ -16,10 +16,11 @@
 
 package org.springframework.cloud.deployer.resource.docker;
 
-import org.junit.Test;
-import org.springframework.core.io.Resource;
-
 import java.io.IOException;
+
+import org.junit.Test;
+
+import org.springframework.core.io.Resource;
 
 import static org.junit.Assert.assertEquals;
 

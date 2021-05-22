@@ -16,6 +16,15 @@
 
 package org.springframework.cloud.deployer.resource.maven;
 
+import java.io.File;
+import java.text.ChoiceFormat;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -50,19 +59,11 @@ import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.eclipse.aether.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import java.io.File;
-import java.text.ChoiceFormat;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Resolves a {@link MavenResource} using <a href="https://www.eclipse.org/aether/>aether</a> to

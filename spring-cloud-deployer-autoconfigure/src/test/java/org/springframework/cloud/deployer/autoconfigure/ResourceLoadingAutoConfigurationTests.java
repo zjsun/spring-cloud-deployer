@@ -17,6 +17,7 @@ package org.springframework.cloud.deployer.autoconfigure;
 
 import org.assertj.core.api.Condition;
 import org.junit.Test;
+
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties;

@@ -15,9 +15,9 @@
  */
 package org.springframework.cloud.deployer.resource.support;
 
-import org.junit.Test;
-
 import java.io.File;
+
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;

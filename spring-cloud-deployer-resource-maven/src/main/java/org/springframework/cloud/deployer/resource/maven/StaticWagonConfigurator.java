@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,8 @@
 package org.springframework.cloud.deployer.resource.maven;
 
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.providers.http.HttpWagon;
@@ -26,6 +26,7 @@ import org.apache.maven.wagon.shared.http.HttpMethodConfiguration;
 import org.eclipse.aether.transport.wagon.WagonConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHttpMethod;
 import org.springframework.cloud.deployer.resource.maven.MavenProperties.WagonHttpMethodProperties;
 

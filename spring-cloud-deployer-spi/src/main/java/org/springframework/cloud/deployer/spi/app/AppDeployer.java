@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.deployer.spi.app;
 
-import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
-import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.core.RuntimeEnvironmentInfo;
 
 /**
  * SPI defining a runtime environment capable of deploying and managing the
@@ -183,7 +183,7 @@ public interface AppDeployer {
 	 *
 	 * @param appScaleRequest an {@link AppScaleRequest}.
 	 */
-	 default void scale(AppScaleRequest appScaleRequest) {
+	default void scale(AppScaleRequest appScaleRequest) {
 		throw new UnsupportedOperationException("'scale' is not implemented.");
 	}
 }

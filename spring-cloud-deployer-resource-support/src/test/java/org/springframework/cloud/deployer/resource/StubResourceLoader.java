@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.deployer.resource;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.util.ClassUtils;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.ClassUtils;
 
 /**
  * Simple {@link ResourceLoader} that returns the {@link Resource}

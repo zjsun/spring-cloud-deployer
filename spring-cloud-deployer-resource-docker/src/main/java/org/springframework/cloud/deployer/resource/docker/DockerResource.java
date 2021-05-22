@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.deployer.resource.docker;
 
-import org.springframework.core.io.AbstractResource;
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+
+import org.springframework.core.io.AbstractResource;
+import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 
 /**
  * A {@link Resource} implementation for resolving a Docker image.
