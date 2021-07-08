@@ -58,10 +58,12 @@ public class ScheduleRequest extends AppDeploymentRequest{
 	 * Construct an {@code AppDeploymentRequest}.
 	 *
 	 * @param definition app definition.
-	 * @param schedulerProperties properties that contain scheduler specific informaton.
+	 * @param schedulerProperties properties that contain scheduler specific information.
 	 * @param deploymentProperties map of deployment properties; may be {@code null}.
 	 * @param scheduleName the name associated with the schedule.
+	 * @param resource the resource associated with the request.
 	 */
+	@Deprecated
 	public ScheduleRequest(AppDefinition definition, Map<String, String> schedulerProperties,
 			Map<String, String> deploymentProperties, String scheduleName, Resource resource) {
 		this(definition, schedulerProperties, deploymentProperties, null, scheduleName, resource);
@@ -71,19 +73,50 @@ public class ScheduleRequest extends AppDeploymentRequest{
 	 * Construct an {@code AppDeploymentRequest}.
 	 *
 	 * @param definition app definition
-	 * @param schedulerProperties properties that contain scheduler specific informaton.
+	 * @param schedulerProperties properties that contain scheduler specific information.
 	 * @param deploymentProperties map of deployment properties; may be {@code null}
 	 * @param commandlineArguments set of command line arguments; may be {@code null}
 	 * @param scheduleName the name associated with the schedule.
+	 * @param resource the resource associated with the request.
 	 */
+	@Deprecated
 	public ScheduleRequest(AppDefinition definition,  Map<String, String> schedulerProperties,
 			Map<String, String> deploymentProperties, List<String> commandlineArguments,
 			String scheduleName, Resource resource) {
 		super(definition, resource, deploymentProperties, commandlineArguments);
 		this.scheduleName = scheduleName;
 		this.schedulerProperties = schedulerProperties == null
-				? Collections.<String, String>emptyMap()
+				? Collections.emptyMap()
 				: Collections.unmodifiableMap(schedulerProperties);
+	}
+
+	/**
+	 * Construct an {@code AppDeploymentRequest}.
+	 *
+	 * @param definition app definition.
+	 * @param deploymentProperties map of deployment properties; may be {@code null}.
+	 * @param scheduleName the name associated with the schedule.
+	 * @param resource the resource associated with the request.
+	 */
+	public ScheduleRequest(AppDefinition definition,
+			Map<String, String> deploymentProperties, String scheduleName, Resource resource) {
+		this(definition, deploymentProperties, (List<String>) null, scheduleName, resource);
+	}
+
+	/**
+	 * Construct an {@code AppDeploymentRequest}.
+	 *
+	 * @param definition app definition
+	 * @param deploymentProperties map of deployment properties; may be {@code null}
+	 * @param commandlineArguments set of command line arguments; may be {@code null}
+	 * @param scheduleName the name associated with the schedule.
+	 * @param resource the resource associated with the request.
+	 */
+	public ScheduleRequest(AppDefinition definition,
+			Map<String, String> deploymentProperties, List<String> commandlineArguments,
+			String scheduleName, Resource resource) {
+		super(definition, resource, deploymentProperties, commandlineArguments);
+		this.scheduleName = scheduleName;
 	}
 
 	/**
@@ -93,10 +126,12 @@ public class ScheduleRequest extends AppDeploymentRequest{
 		return scheduleName;
 	}
 
+	@Deprecated
 	public Map<String, String> getSchedulerProperties() {
 		return schedulerProperties;
 	}
 
+	@Deprecated
 	public void setSchedulerProperties(Map<String, String> schedulerProperties) {
 		this.schedulerProperties = schedulerProperties;
 	}
